@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  role          String    @default("APPLICANT") // APPLICANT, OFFICER, ADMIN
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Applicant details
+  companyName   String?
+  panNumber     String?
+  
+  // Relations
+  applications  Application[] @relation("ApplicantApplications")
+  reviews       ApplicationReview[] @relation("OfficerReviews")
+  documents     Document[]
+  units         BusinessUnit[]
+}
+
+model BusinessUnit {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  location    String
+  scale       String   // MICRO, SMALL, MEDIUM, LARGE
+  sector      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  applications Application[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Application {
+  id             String   @id @default(cuid())
+  applicantId    String
+  unitId         String?
+  status         String   @default("DRAFT") // DRAFT, SUBMITTED, IN_REVIEW, QUERIED, APPROVED, REJECTED
+  
+  // Calculated fields
+  riskScore      Float?
+  predictedETA   DateTime?
+  bottleneckDept String?
+  
+  // Relations
+  applicant      User     @relation("ApplicantApplications", fields: [applicantId], references: [id])
+  unit           BusinessUnit? @relation(fields: [unitId], references: [id])
+  documents      Document[]
+  reviews        ApplicationReview[]
+  approvals      ApprovalRequirement[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  submittedAt    DateTime?
+}
+
+model ApprovalRequirement {
+  id             String   @id @default(cuid())
+  applicationId  String
+  department     String
+  approvalName   String
+  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED, QUERIED
+  
+  application    Application @relation(fields: [applicationId], references: [id])
+}
+
+model Document {
+  id             String   @id @default(cuid())
+  userId         String
+  applicationId  String?
+  type           String   // PAN, AADHAAR, LAND_DEED, etc.
+  url            String
+  isVerified     Boolean  @default(false)
+  ocrData        String?  // JSON string
+  expiryDate     DateTime?
+  
+  user           User     @relation(fields: [userId], references: [id])
+  application    Application? @relation(fields: [applicationId], references: [id])
+  
+  createdAt      DateTime @default(now())
+}
+
+model ApplicationReview {
+  id             String   @id @default(cuid())
+  applicationId  String
+  officerId      String
+  department     String
+  decision       String   // APPROVED, REJECTED, QUERY
+  comments       String?
+  
+  application    Application @relation(fields: [applicationId], references: [id])
+  officer        User       @relation("OfficerReviews", fields: [officerId], references: [id])
+  
+  createdAt      DateTime @default(now())
+}
+
+model Scheme {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  eligibility String   // JSON logic or textual rules
+  sector      String?
+  scale       String?
+  
+  createdAt   DateTime @default(now())
+}
