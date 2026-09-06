@@ -4,90 +4,280 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   UdyogSetu design system
+   Brand palette + Tailwind's built-in color scales are remapped once, here,
+   so every existing `bg-slate-*`, `text-blue-*`, `bg-emerald-*` etc. class
+   already used throughout the app (shadcn components included) picks up
+   the brand look automatically — no per-page class edits required.
+   ========================================================================== */
+
 @theme {
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans: var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+
+  /* --- Neutral scale (slate) — warm putty → ink → ashoka -------------- */
+  --color-slate-50: #FAF7F0;
+  --color-slate-100: #F3ECDD;
+  --color-slate-200: #E4DCC8;
+  --color-slate-300: #D6C9AC;
+  --color-slate-400: #A79980;
+  --color-slate-500: #7D7566;
+  --color-slate-600: #5A5548;
+  --color-slate-700: #4D493D;
+  --color-slate-800: #2A2620;
+  --color-slate-900: #1E3A5F;
+  --color-slate-950: #12202F;
+
+  /* --- Primary action (blue → terracotta) ----------------------------- */
+  --color-blue-50: #FBEEE7;
+  --color-blue-100: #F6DBCB;
+  --color-blue-200: #EDB79A;
+  --color-blue-300: #E19468;
+  --color-blue-400: #D17B4E;
+  --color-blue-500: #C15F38;
+  --color-blue-600: #B5502E;
+  --color-blue-700: #9B4326;
+  --color-blue-800: #7E3720;
+  --color-blue-900: #612A19;
+  --color-blue-950: #451E12;
+
+  /* --- Success (emerald & green → forest) ------------------------------ */
+  --color-emerald-50: #EEF3EE;
+  --color-emerald-100: #DCE7DD;
+  --color-emerald-200: #B9CFBB;
+  --color-emerald-300: #93B497;
+  --color-emerald-400: #6C9772;
+  --color-emerald-500: #4C7B54;
+  --color-emerald-600: #3A6242;
+  --color-emerald-700: #2F4A34;
+  --color-emerald-800: #253A28;
+  --color-emerald-900: #1B2B1D;
+  --color-emerald-950: #10190F;
+
+  --color-green-50: #EEF3EE;
+  --color-green-100: #DCE7DD;
+  --color-green-200: #B9CFBB;
+  --color-green-300: #93B497;
+  --color-green-400: #6C9772;
+  --color-green-500: #4C7B54;
+  --color-green-600: #3A6242;
+  --color-green-700: #2F4A34;
+  --color-green-800: #253A28;
+  --color-green-900: #1B2B1D;
+  --color-green-950: #10190F;
+
+  /* --- Danger (red & rose → crimson; kept distinct from terracotta) ---- */
+  --color-red-50: #FDECEB;
+  --color-red-100: #FAD7D4;
+  --color-red-200: #F3B2AB;
+  --color-red-300: #E88C80;
+  --color-red-400: #DA6656;
+  --color-red-500: #C94A38;
+  --color-red-600: #A83A2C;
+  --color-red-700: #8A2F24;
+  --color-red-800: #6B241C;
+  --color-red-900: #4C1914;
+  --color-red-950: #331010;
+
+  --color-rose-50: #FDECEB;
+  --color-rose-100: #FAD7D4;
+  --color-rose-200: #F3B2AB;
+  --color-rose-300: #E88C80;
+  --color-rose-400: #DA6656;
+  --color-rose-500: #C94A38;
+  --color-rose-600: #A83A2C;
+  --color-rose-700: #8A2F24;
+  --color-rose-800: #6B241C;
+  --color-rose-900: #4C1914;
+  --color-rose-950: #331010;
+
+  /* --- Warning / gold (amber → marigold) -------------------------------- */
+  --color-amber-50: #FEF8ED;
+  --color-amber-100: #FCEDCF;
+  --color-amber-200: #F8D89D;
+  --color-amber-300: #F2C06B;
+  --color-amber-400: #EDAE4C;
+  --color-amber-500: #E8A33D;
+  --color-amber-600: #C98527;
+  --color-amber-700: #A2691E;
+  --color-amber-800: #7A4F18;
+  --color-amber-900: #533511;
+  --color-amber-950: #38240C;
+
+  /* --- Secondary warm accent / bronze (orange) -------------------------- */
+  --color-orange-50: #FAF3E9;
+  --color-orange-100: #F1E1C7;
+  --color-orange-200: #E2C295;
+  --color-orange-300: #CF9E65;
+  --color-orange-400: #BC8347;
+  --color-orange-500: #A9702E;
+  --color-orange-600: #8C5B24;
+  --color-orange-700: #6E481D;
+  --color-orange-800: #523616;
+  --color-orange-900: #38240F;
+  --color-orange-950: #23160A;
+
+  /* --- Navy accent (indigo, purple, sky → ashoka) ----------------------- */
+  --color-indigo-50: #EAF0F6;
+  --color-indigo-100: #D2E0EC;
+  --color-indigo-200: #A7C2DA;
+  --color-indigo-300: #7CA3C8;
+  --color-indigo-400: #4F7FAE;
+  --color-indigo-500: #35608C;
+  --color-indigo-600: #1E3A5F;
+  --color-indigo-700: #17304D;
+  --color-indigo-800: #11253B;
+  --color-indigo-900: #0B1A29;
+  --color-indigo-950: #060F18;
+
+  --color-purple-50: #EAF0F6;
+  --color-purple-100: #D2E0EC;
+  --color-purple-200: #A7C2DA;
+  --color-purple-300: #7CA3C8;
+  --color-purple-400: #4F7FAE;
+  --color-purple-500: #35608C;
+  --color-purple-600: #1E3A5F;
+  --color-purple-700: #17304D;
+  --color-purple-800: #11253B;
+  --color-purple-900: #0B1A29;
+  --color-purple-950: #060F18;
+
+  --color-sky-50: #EAF0F6;
+  --color-sky-100: #D2E0EC;
+  --color-sky-200: #A7C2DA;
+  --color-sky-300: #7CA3C8;
+  --color-sky-400: #4F7FAE;
+  --color-sky-500: #35608C;
+  --color-sky-600: #1E3A5F;
+  --color-sky-700: #17304D;
+  --color-sky-800: #11253B;
+  --color-sky-900: #0B1A29;
+  --color-sky-950: #060F18;
 }
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%; /* Blue */
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  /* Brand palette */
+  --terracotta: #B5502E;
+  --ashoka: #1E3A5F;
+  --cream: #F3ECDD;
+  --cream-soft: #FBF8F1;
+  --forest: #2F4A34;
+  --marigold: #E8A33D;
+  --ink: #2A2620;
+  --ink-muted: #5a5548;
+  --ink-muted-2: #4d493d;
+  --border-warm: #E4DCC8;
+
+  /* shadcn semantic tokens, mapped to the brand palette */
+  --background: var(--cream);
+  --foreground: var(--ink-muted);
+  --card: #FFFFFF;
+  --card-foreground: var(--ink);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--ink);
+  --primary: var(--terracotta);
+  --primary-foreground: var(--cream);
+  --secondary: #ECE3D0;
+  --secondary-foreground: var(--ink);
+  --muted: #EFE8D8;
+  --muted-foreground: var(--ink-muted);
+  --accent: #FCEDCF;
+  --accent-foreground: var(--ink);
+  --destructive: #A83A2C;
+  --destructive-foreground: #FDECEB;
+  --border: var(--border-warm);
+  --input: var(--border-warm);
+  --ring: var(--terracotta);
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+  --background: var(--ink);
+  --foreground: var(--cream);
+  --card: #34302A;
+  --card-foreground: var(--cream);
+  --popover: #34302A;
+  --popover-foreground: var(--cream);
+  --primary: var(--terracotta);
+  --primary-foreground: var(--cream);
+  --secondary: #443F35;
+  --secondary-foreground: var(--cream);
+  --muted: #443F35;
+  --muted-foreground: #C9C0AC;
+  --accent: #443F35;
+  --accent-foreground: var(--cream);
+  --destructive: #C94A38;
+  --destructive-foreground: var(--cream);
+  --border: #443F35;
+  --input: #443F35;
+  --ring: var(--terracotta);
 }
 
 * {
   @apply border-[color:var(--color-border)];
 }
 
+html {
+  font-family: var(--font-sans);
+}
+
 body {
   @apply bg-[color:var(--color-background)] text-[color:var(--color-foreground)];
+  line-height: 1.6;
+}
+
+/* Headings use Fraunces + the ashoka navy, everywhere in the app. Uses
+   :where() for color so a page's own text-color utility class can still
+   win when it deliberately sets one. */
+h1, h2, h3, h4, h5, h6,
+[data-slot="card-title"],
+[data-slot="dialog-title"],
+[data-slot="sheet-title"],
+[data-slot="popover-title"],
+[data-slot="alert-dialog-title"] {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+:where(h1, h2, h3, h4, h5, h6,
+  [data-slot="card-title"],
+  [data-slot="dialog-title"],
+  [data-slot="sheet-title"],
+  [data-slot="popover-title"],
+  [data-slot="alert-dialog-title"]) {
+  color: var(--ashoka);
 }
 
 /* Hide Google Translate UI */
@@ -95,4 +285,3 @@ body { top: 0 !important; position: static !important; }
 .skiptranslate > iframe.skiptranslate { display: none !important; visibility: hidden !important; }
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 #goog-gt-tt { display: none !important; }
-

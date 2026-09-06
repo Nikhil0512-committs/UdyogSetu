@@ -2,7 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import NotificationsMenu from "@/components/notifications-menu";
-import LanguageToggle from "@/components/language-toggle";
+import PillLanguageToggle from "@/components/pill-language-toggle";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AgentChatPanel } from "@/components/agent-chat-panel";
 import { Sparkles } from "lucide-react";
@@ -29,7 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="flex items-center gap-3 border-l pl-4 border-slate-200">
             
             {/* Language & Agent Mode Mocks */}
-            <LanguageToggle />
+            <PillLanguageToggle />
             
             <Sheet>
               <SheetTrigger className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold cursor-pointer hover:bg-indigo-200 flex items-center gap-1">

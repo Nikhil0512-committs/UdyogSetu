@@ -193,19 +193,19 @@ export default function AnalyticsDashboard() {
                   <AreaChart data={timelineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorApprovals" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#B5502E" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#B5502E" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4DCC8" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5548' }} />
+                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5548' }} />
+                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5548' }} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: '1px solid #E4DCC8', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Area yAxisId="left" type="monotone" dataKey="approvals" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorApprovals)" name="Total Approvals" />
-                    <Line yAxisId="right" type="monotone" dataKey="time" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} name="Avg Time (Days)" />
+                    <Area yAxisId="left" type="monotone" dataKey="approvals" stroke="#B5502E" strokeWidth={3} fillOpacity={1} fill="url(#colorApprovals)" name="Total Approvals" />
+                    <Line yAxisId="right" type="monotone" dataKey="time" stroke="#2F4A34" strokeWidth={3} dot={{ r: 4 }} name="Avg Time (Days)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -220,11 +220,11 @@ export default function AnalyticsDashboard() {
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sectorData} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#475569', fontWeight: 500 }} />
-                    <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={24} name="New Enterprises" />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E4DCC8" />
+                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5548' }} />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#4D493D', fontWeight: 500 }} />
+                    <Tooltip cursor={{ fill: '#FBF8F1' }} contentStyle={{ borderRadius: '8px', border: '1px solid #E4DCC8', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="value" fill="#E8A33D" radius={[0, 4, 4, 0]} barSize={24} name="New Enterprises" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
