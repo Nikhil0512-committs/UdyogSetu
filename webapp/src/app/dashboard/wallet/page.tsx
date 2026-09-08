@@ -412,10 +412,7 @@ export default function DocumentWalletPage() {
 
                 <div className="pt-2">
                   <Button
-                    onClick={() => {
-                      const input = document.getElementById("file-upload-input") as HTMLInputElement;
-                      if (input) input.click();
-                    }}
+                    onClick={() => handleSimulatedUpload()}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium gap-2"
                   >
                     <UploadCloud className="w-4 h-4" />
