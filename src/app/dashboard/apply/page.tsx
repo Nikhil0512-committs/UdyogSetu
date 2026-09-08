@@ -255,7 +255,7 @@ export default function ApplyPage() {
                     <span className="text-sm text-slate-800 font-semibold">Analyzing &quot;{ocrFileName}&quot; via Gemini Vision...</span>
                     <span className="text-xs text-slate-600 mt-1">Classifying document and extracting MAITRI business details</span>
                   </div>
-                ) : formData.pan ? (
+                ) : formData.companyName ? (
                   <div className="flex flex-col items-center">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mb-2" />
                     <span className="text-sm text-emerald-800 font-semibold">Processed &quot;{ocrFileName || "document_verified.pdf"}&quot;</span>
@@ -269,12 +269,16 @@ export default function ApplyPage() {
                   </>
                 )}
               </div>
-              {formData.pan && (
+              {formData.companyName && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mt-4 flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-semibold text-emerald-900">AI Classification & OCR Complete</p>
-                    <p className="text-emerald-800 mt-1">PAN: <span className="font-mono font-bold">{formData.pan}</span> • GSTIN: <span className="font-mono font-bold">{formData.gstin}</span></p>
+                    <p className="text-emerald-800 mt-1 flex flex-wrap items-center gap-x-2">
+                      <span className="font-bold">{formData.companyName}</span>
+                      {formData.pan ? <span>• PAN: <span className="font-mono font-bold">{formData.pan}</span></span> : null}
+                      {formData.gstin ? <span>• GSTIN: <span className="font-mono font-bold">{formData.gstin}</span></span> : null}
+                    </p>
                     <p className="text-emerald-700 text-xs mt-1">Cross-verified against MCA & GST portal registries.</p>
                   </div>
                 </div>
@@ -417,7 +421,7 @@ export default function ApplyPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-slate-700">Universal Docs</span><span className="font-semibold text-slate-900">{universalDocs.filter(d => uploadedDocs[d]?.uploaded).length} / {universalDocs.length}</span></div>
                   <div className="flex justify-between"><span className="text-slate-700">Approval Docs</span><span className="font-semibold text-slate-900">{checklist.filter(c => uploadedDocs[c.doc]?.uploaded).length} / {checklist.length}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-700">OCR Auto-Fill</span><span className={`font-semibold ${formData.pan ? 'text-emerald-700' : 'text-amber-700'}`}>{formData.pan ? "✓ Complete" : "⏳ Pending"}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-700">OCR Auto-Fill</span><span className={`font-semibold ${formData.companyName ? 'text-emerald-700' : 'text-amber-700'}`}>{formData.companyName ? "✓ Complete" : "⏳ Pending"}</span></div>
                   <div className="w-full bg-slate-200 rounded-full h-2.5 mt-3">
                     <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${totalDocs > 0 ? (uploadedCount / totalDocs) * 100 : 0}%` }}></div>
                   </div>
@@ -426,7 +430,7 @@ export default function ApplyPage() {
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || (uploadedCount < 1 && !formData.pan)}>
+                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || (uploadedCount < 1 && !formData.companyName)}>
                   {isSubmitting ? "Submitting..." : "Dispatch to All Departments"}
                 </Button>
                 <Button variant="outline" onClick={() => router.back()} className="w-full">Back to Checklist</Button>

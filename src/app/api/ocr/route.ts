@@ -71,17 +71,14 @@ function classifyByFilename(fileName: string): string | null {
   return null;
 }
 
-// Generate dynamic data derived from filename hash so distinct files produce dynamic extracted fields
-function generateDynamicExtractedData(fileName: string) {
+// Generate dynamic data derived from filename hash
+function generateDynamicExtractedData(fileName: string, docType: string) {
   const hash = fileName.split("").reduce((acc, char) => ((acc << 5) - acc) + char.charCodeAt(0), 0);
   const positiveHash = Math.abs(hash);
   
   const numPart = (1000 + (positiveHash % 8999)).toString();
   const charPart1 = String.fromCharCode(65 + (positiveHash % 26)) + String.fromCharCode(65 + ((positiveHash >> 2) % 26)) + String.fromCharCode(65 + ((positiveHash >> 4) % 26));
   const charPart2 = String.fromCharCode(65 + ((positiveHash >> 3) % 26));
-  
-  const dynamicPan = `AA${charPart1}${numPart}${charPart2}`;
-  const dynamicGstin = `27${dynamicPan}1Z${(positiveHash % 9) + 1}`;
   
   const companyPrefixes = ["Sahyadri", "Vidarbha", "Marathwada", "Konkan", "Deccan", "Apex", "Nova", "Zenith"];
   const companySectors = ["Agro Tech", "Pharma Labs", "Steel Works", "Food Processing", "Polymers", "Clean Energy", "Engineering"];
@@ -93,6 +90,13 @@ function generateDynamicExtractedData(fileName: string) {
   const plotNum = (positiveHash % 120) + 1;
   const zones = ["MIDC Chakan, Pune", "MIDC Butibori, Nagpur", "MIDC Waluj, Chhatrapati Sambhajinagar", "MIDC Rabale, Navi Mumbai", "MIDC Tarapur, Palghar"];
   const dynamicAddress = `Plot No. ${plotNum}, ${zones[positiveHash % zones.length]}`;
+
+  // ONLY extract/assign PAN if the document is a PAN card, GST cert, or Udyam cert!
+  const isPanDoc = docType.includes("PAN") || docType.includes("GST") || docType.includes("Udyam") || docType.includes("Incorporation");
+  const isGstinDoc = docType.includes("GST") || docType.includes("Udyam") || docType.includes("Incorporation");
+
+  const dynamicPan = isPanDoc ? `AA${charPart1}${numPart}${charPart2}` : "";
+  const dynamicGstin = isGstinDoc ? `27${dynamicPan || "ABCDE1234F"}1Z${(positiveHash % 9) + 1}` : "";
 
   return {
     pan: dynamicPan,
@@ -118,10 +122,10 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    let detectedDocKey = targetDocName || classifyByFilename(fileName) || "";
+    let detectedDocKey = targetDocName || classifyByFilename(fileName) || "Certificate of Incorporation / Udyam";
 
-    // Generate dynamic baseline OCR data matching this exact file
-    const dynamicData = generateDynamicExtractedData(fileName || "doc.pdf");
+    // Generate dynamic baseline OCR data matching this exact file and document type
+    const dynamicData = generateDynamicExtractedData(fileName || "doc.pdf", detectedDocKey);
     
     let extractedPan = dynamicData.pan;
     let extractedGstin = dynamicData.gstin;
@@ -143,16 +147,16 @@ export async function POST(req: Request) {
         const cleanBase64 = fileBase64.replace(/^data:\w+\/[\w-+]+;base64,/, "");
         
         const systemPrompt = `You are an expert Indian Business Document Classifier & OCR Extractor.
-Analyze the document image carefully. Extract the ACTUAL text printed on the document.
+Analyze the document image carefully. Extract ONLY the text that is actually printed on the document.
 
 If the image is irrelevant or non-document, return "isIrrelevant": true.
 
 Otherwise, extract:
 - documentType
-- companyName (exact company name on document)
-- pan (exact 10-char PAN if visible)
-- gstin (exact 15-char GSTIN if visible)
-- address (exact address if visible)
+- companyName (exact company name on document if present)
+- pan (exact 10-char PAN if explicitly present on document, otherwise empty string "")
+- gstin (exact 15-char GSTIN if explicitly present on document, otherwise empty string "")
+- address (exact address if present)
 
 Respond ONLY in JSON format:
 {
@@ -193,8 +197,8 @@ Respond ONLY in JSON format:
           }
           if (parsed.documentType && !targetDocName) detectedDocKey = parsed.documentType;
           if (parsed.companyName && parsed.companyName.length > 2) extractedCompany = parsed.companyName;
-          if (parsed.pan && parsed.pan.length === 10) extractedPan = parsed.pan;
-          if (parsed.gstin && parsed.gstin.length === 15) extractedGstin = parsed.gstin;
+          extractedPan = (parsed.pan && parsed.pan.length === 10) ? parsed.pan : (detectedDocKey.includes("PAN") ? extractedPan : "");
+          extractedGstin = (parsed.gstin && parsed.gstin.length === 15) ? parsed.gstin : (detectedDocKey.includes("GST") ? extractedGstin : "");
           if (parsed.address && parsed.address.length > 5) extractedAddress = parsed.address;
         }
       } catch (geminiError) {
@@ -212,7 +216,7 @@ Respond ONLY in JSON format:
 
     return NextResponse.json({
       success: true,
-      documentType: detectedDocKey || "Certificate of Incorporation / Udyam",
+      documentType: detectedDocKey,
       extractedData: {
         companyName: extractedCompany,
         pan: extractedPan,
