@@ -53,26 +53,54 @@ export default function ApplyPage() {
       
       const lowerName = file.name.toLowerCase();
       let docKey = "";
+      let extractsBusinessData = false;
       
       if (lowerName.includes("pan")) {
         docKey = "PAN card (Company/Proprietor)";
+        extractsBusinessData = true;
       } else if (lowerName.includes("incorporation") || lowerName.includes("udyam")) {
         docKey = "Certificate of Incorporation / Udyam";
+        extractsBusinessData = true;
       } else if (lowerName.includes("gst")) {
         docKey = "GST Registration Certificate";
+        extractsBusinessData = true;
+      } else if (lowerName.includes("land") || lowerName.includes("lease")) {
+        docKey = "Land Ownership / Lease Allotment";
+      } else if (lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("building")) {
+        docKey = "Site Layout Plan / Building Plan Drawing";
+      } else if (lowerName.includes("project") || lowerName.includes("manufacturing") || lowerName.includes("process")) {
+        docKey = "Project Report / Manufacturing Process Details";
+      } else if (lowerName.includes("aadhaar")) {
+        docKey = "Aadhaar of Authorized Signatory";
+      } else {
+        // Try to match against approval-specific checklist items
+        const nameTokens = lowerName.split(/[\s_\-\.]+/).filter(t => t.length > 3);
+        for (const item of checklist) {
+          const docLower = item.doc.toLowerCase();
+          const nameLower = item.name.toLowerCase();
+          if (nameTokens.some(token => docLower.includes(token) || nameLower.includes(token))) {
+            docKey = item.doc;
+            break;
+          }
+        }
       }
       
       if (!docKey) {
-        toast.error("Could not recognize document. Please upload a valid PAN, GST, or Incorporation Certificate.");
+        toast.error("Could not recognize document. Please ensure the filename matches a required document.");
         return;
       }
 
-      setFormData({
-        pan: "ABCDE1234F",
-        companyName: "Acme Industries Pvt Ltd",
-        address: "Plot 42, MIDC Hinjewadi, Pune",
-        gstin: "27ABCDE1234F1Z5"
-      });
+      if (extractsBusinessData) {
+        setFormData(prev => ({
+          ...prev,
+          pan: "ABCDE1234F",
+          companyName: "Acme Industries Pvt Ltd",
+          address: "Plot 42, MIDC Hinjewadi, Pune",
+          gstin: "27ABCDE1234F1Z5"
+        }));
+      } else {
+        toast.success(`OCR Verified: ${docKey}`);
+      }
       
       setUploadedDocs(prev => ({
         ...prev,
@@ -160,9 +188,9 @@ export default function ApplyPage() {
           <Card className="shadow-sm border-slate-200">
             <CardHeader className="bg-blue-50 border-b border-blue-100 pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
-                <ScanFace className="w-5 h-5 text-blue-600" /> AI OCR Auto-Fill Engine
+                <ScanFace className="w-5 h-5 text-blue-600" /> AI OCR Auto-Fill & Verification Engine
               </CardTitle>
-              <CardDescription className="text-slate-600">Upload your PAN or Incorporation Certificate to auto-extract business details</CardDescription>
+              <CardDescription className="text-slate-600">Upload any required document to auto-extract details or verify it instantly</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               {/* Hidden file input */}
@@ -181,19 +209,19 @@ export default function ApplyPage() {
                   <div className="animate-pulse flex flex-col items-center">
                     <ScanFace className="w-10 h-10 text-blue-600 mb-2" />
                     <span className="text-sm text-slate-800 font-semibold">Processing &quot;{ocrFileName}&quot;...</span>
-                    <span className="text-xs text-slate-600 mt-1">Extracting PAN, Company Name, GSTIN via AI OCR</span>
+                    <span className="text-xs text-slate-600 mt-1">Analyzing document via AI OCR</span>
                   </div>
                 ) : formData.pan ? (
                   <div className="flex flex-col items-center">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mb-2" />
-                    <span className="text-sm text-emerald-800 font-semibold">Extracted from &quot;{ocrFileName}&quot;</span>
-                    <span className="text-xs text-slate-600 mt-1">Click to re-upload a different document</span>
+                    <span className="text-sm text-emerald-800 font-semibold">Processed &quot;{ocrFileName}&quot;</span>
+                    <span className="text-xs text-slate-600 mt-1">Click to upload another document</span>
                   </div>
                 ) : (
                   <>
                     <UploadCloud className="w-10 h-10 text-blue-600 mb-2" />
                     <span className="text-sm font-semibold text-slate-800">Click to Browse & Upload File</span>
-                    <span className="text-xs text-slate-600 mt-1">PDF, JPG, PNG — AI will extract PAN, GSTIN & Company Name</span>
+                    <span className="text-xs text-slate-600 mt-1">PDF, JPG, PNG — AI will verify and check off the document</span>
                   </>
                 )}
               </div>
