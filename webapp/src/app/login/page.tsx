@@ -108,6 +108,7 @@ export default function LoginPage() {
                 {role === "APPLICANT" ? "Aadhaar Number" : "Employee ID"}
               </Label>
               <Input
+                key={`login-id-${role}`}
                 placeholder={role === "APPLICANT" ? "1234 5678 9012" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
                 required
                 defaultValue={role === "APPLICANT" ? "1234 5678 9012" : ""}

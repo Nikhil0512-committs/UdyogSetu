@@ -2,17 +2,19 @@ import { getSession } from "@/lib/auth";
 import MeetingRoom from "@/components/MeetingRoom";
 import { redirect } from "next/navigation";
 
-export default async function MeetingPage({ params }: { params: { id: string } }) {
+export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   
   if (!session) {
     redirect("/login");
   }
 
+  const { id } = await params;
+
   // Generate a safe user ID (no spaces or special chars for Stream)
-  const safeUserId = session.id || session.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+  const safeUserId = session.userId || session.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
 
   return (
-    <MeetingRoom callId={params.id} userId={safeUserId} userName={session.name} />
+    <MeetingRoom callId={id} userId={safeUserId} userName={session.name} />
   );
 }

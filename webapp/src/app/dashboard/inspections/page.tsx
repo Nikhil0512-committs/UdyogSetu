@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notifyReschedule } from "@/actions/notifications";
 
 export default function InspectionsPage() {
   const [rescheduleOpen, setRescheduleOpen] = React.useState(false);
@@ -36,14 +37,22 @@ export default function InspectionsPage() {
   
   const handleRescheduleSubmit = async () => {
     setIsSubmitting(true);
-    await fetch("/api/applicant/reschedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, time, reason })
-    });
-    setIsSubmitting(false);
-    toast.success("Reschedule request submitted successfully! The Labour Department officer has been notified to approve the new date.");
-    setRescheduleOpen(false);
+    try {
+      await notifyReschedule({
+        to: "officer",
+        newDate: date,
+        newTime: time,
+        reason,
+        initiator: "Applicant",
+      });
+      toast.success("Reschedule request sent! The officer has been notified.");
+      setRescheduleOpen(false);
+      setReason("");
+    } catch (err) {
+      toast.error("Failed to send reschedule notification.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <div className="space-y-6">

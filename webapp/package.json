@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^0.0.52",
-    "@ai-sdk/react": "^1.0.0",
+    "@ai-sdk/react": "^1.0.3",
     "@base-ui/react": "^1.7.0",
     "@prisma/client": "^5.20.0",
     "@radix-ui/react-label": "^2.1.15",

@@ -3,10 +3,11 @@
 import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, User, Sparkles, Send, Mic } from "lucide-react";
+import { Bot, Sparkles, Send, Mic } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from 'react-markdown';
 import { Message } from "ai";
+import { usePathname } from "next/navigation";
 
 const INITIAL_MESSAGES: Message[] = [
   { 
@@ -15,8 +16,6 @@ const INITIAL_MESSAGES: Message[] = [
     content: "नमस्कार! मी उद्योगसेतू AI आहे. मी तुम्हाला कोणत्या सरकारी योजनांमध्ये मदत करू शकतो?\n\n(Hello! I am the UdyogSetu AI. Which government schemes can I help you find today?)" 
   }
 ];
-
-import { usePathname } from "next/navigation";
 
 export function AgentChatPanel() {
   const pathname = usePathname();
@@ -94,7 +93,7 @@ export function AgentChatPanel() {
             </div>
           </div>
         ))}
-        {isLoading && (
+        {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div className="flex gap-3 justify-start">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center">
               <Bot className="w-4 h-4 text-blue-600"/>

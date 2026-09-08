@@ -59,8 +59,34 @@ export async function POST(req: Request) {
     contextPrompt = "The user is currently on the Grievances page. Here they can raise and track complaints regarding delays or issues.";
   }
 
+  // Fallback for local testing when API key is missing
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    const encoder = new TextEncoder();
+    const customStream = new ReadableStream({
+      async start(controller) {
+        const text = `I see you are asking about: "${messages[messages.length - 1].content}". \n\n[MOCK RESPONSE]: You need to configure the \`GOOGLE_GENERATIVE_AI_API_KEY\` in your \`.env\` file for the real AI to respond. However, based on your context: ${contextPrompt}\n\nI can help you find relevant schemes or track your applications. Please let me know what you need!`;
+        
+        // Stream text chunk by chunk to simulate AI typing
+        const words = text.split(" ");
+        for (const word of words) {
+          const chunk = JSON.stringify(word + " ");
+          controller.enqueue(encoder.encode(`0:${chunk}\n`));
+          await new Promise(r => setTimeout(r, 50));
+        }
+        controller.close();
+      }
+    });
+    
+    return new Response(customStream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Vercel-AI-Data-Stream': 'v1'
+      }
+    });
+  }
+
   const result = await streamText({
-    model: google('gemini-1.5-flash'),
+    model: google('gemini-3.6-flash'),
     system: `${SYSTEM_PROMPT}\n\n[USER CONTEXT]\n${contextPrompt}\nIf the user asks for help or says they are stuck, provide helpful guidance relevant to this specific page context.`,
     messages,
   });
