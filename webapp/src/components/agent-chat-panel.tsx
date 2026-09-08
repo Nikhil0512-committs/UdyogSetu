@@ -16,10 +16,17 @@ const INITIAL_MESSAGES: Message[] = [
   }
 ];
 
+import { usePathname } from "next/navigation";
+
 export function AgentChatPanel() {
+  const pathname = usePathname();
+
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
-    initialMessages: INITIAL_MESSAGES
+    initialMessages: INITIAL_MESSAGES,
+    body: {
+      pathname
+    }
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);

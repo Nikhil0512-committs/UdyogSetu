@@ -42,13 +42,28 @@ Rules:
 `;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, pathname } = await req.json();
+
+  let contextPrompt = "The user is browsing the platform.";
+  if (pathname === "/dashboard") {
+    contextPrompt = "The user is currently on the Dashboard page. This page gives them an overview of their business profile and recent activity.";
+  } else if (pathname === "/dashboard/applications") {
+    contextPrompt = "The user is currently on the Applications page. Here they can track and manage their permits, licenses, and NOC requests.";
+  } else if (pathname === "/dashboard/wallet") {
+    contextPrompt = "The user is currently on the Document Wallet page. Here they can securely store and share their verified business documents like PAN, Aadhaar, and GST.";
+  } else if (pathname === "/dashboard/schemes") {
+    contextPrompt = "The user is currently on the Schemes page. Here they can discover and apply for government subsidies and incentive programs.";
+  } else if (pathname === "/dashboard/inspections") {
+    contextPrompt = "The user is currently on the Inspections page. Here they can schedule and manage remote video or physical site verifications.";
+  } else if (pathname === "/dashboard/grievances") {
+    contextPrompt = "The user is currently on the Grievances page. Here they can raise and track complaints regarding delays or issues.";
+  }
 
   const result = await streamText({
-    model: google('gemini-3.5-flash' as any),
-    system: SYSTEM_PROMPT,
+    model: google('gemini-1.5-flash'),
+    system: `${SYSTEM_PROMPT}\n\n[USER CONTEXT]\n${contextPrompt}\nIf the user asks for help or says they are stuck, provide helpful guidance relevant to this specific page context.`,
     messages,
   });
 
-  return result.toAIStreamResponse();
+  return result.toDataStreamResponse();
 }

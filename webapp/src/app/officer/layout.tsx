@@ -20,8 +20,19 @@ export default async function OfficerLayout({ children }: { children: React.Reac
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <nav className="hidden md:flex gap-4">
-            <Link href="/officer/dashboard" className="text-sm font-medium text-slate-300 hover:text-white">Queue Dashboard</Link>
+          <nav className="hidden md:flex gap-6">
+            <div className="relative group flex items-center">
+              <Link href="/officer/dashboard" className="text-sm font-medium text-slate-300 hover:text-white py-2">Queue Dashboard</Link>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-50 text-center pointer-events-none">
+                View and process pending applications assigned to you.
+              </div>
+            </div>
+            <div className="relative group flex items-center">
+              <Link href="/officer/inspections" className="text-sm font-medium text-slate-300 hover:text-white py-2">Video Inspections</Link>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block w-56 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-50 text-center pointer-events-none">
+                Conduct scheduled remote site verifications via video call.
+              </div>
+            </div>
           </nav>
           <div className="flex items-center gap-4 border-l pl-4 border-slate-700">
             <PillLanguageToggle variant="dark" />

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -247,11 +248,11 @@ export default function InspectionsPage() {
               </DialogContent>
             </Dialog>
             <Button 
-              className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white flex gap-2 justify-center"
-              onClick={() => toast.info("Connecting to secure WebRTC video verification room...")}
+              disabled
+              className="w-full sm:flex-1 bg-slate-200 text-slate-500 cursor-not-allowed flex gap-2 justify-center"
             >
-              <Video className="h-4 w-4" />
-              Join Video Call
+              <Clock className="h-4 w-4" />
+              Waiting for Officer to Call...
             </Button>
           </CardFooter>
         </Card>
