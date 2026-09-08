@@ -16,7 +16,11 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
     ? "app-user-1" 
     : (session.userId || session.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase());
 
+  const userName = session.role === "OFFICER" && session.department 
+    ? session.department 
+    : session.name;
+
   return (
-    <MeetingRoom callId={id} userId={safeUserId} userName={session.name} />
+    <MeetingRoom callId={id} userId={safeUserId} userName={userName} />
   );
 }

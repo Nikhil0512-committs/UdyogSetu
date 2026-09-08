@@ -30,7 +30,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const safeUserId = session?.role === "APPLICANT" 
     ? "app-user-1" 
     : (session?.userId || session?.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase() || "");
-  const userName = session?.name || "";
+  const userName = session?.role === "OFFICER" && session?.department 
+    ? session.department 
+    : (session?.name || "");
 
   return (
     <html
