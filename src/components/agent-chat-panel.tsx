@@ -32,7 +32,8 @@ const getInitialMessages = (pathname: string): Message[] => {
 export function AgentChatPanel() {
   const pathname = usePathname();
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
+    id: "agent-chat-session",
     api: "/api/chat",
     initialMessages: getInitialMessages(pathname),
     body: {
@@ -42,6 +43,28 @@ export function AgentChatPanel() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
+
+  // Load from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("udyogsetu-chat-messages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to restore chat", e);
+    }
+  }, [setMessages]);
+
+  // Save to sessionStorage when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem("udyogsetu-chat-messages", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
