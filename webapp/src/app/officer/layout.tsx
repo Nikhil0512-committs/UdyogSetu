@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
+import PillLanguageToggle from "@/components/pill-language-toggle";
 
 export default async function OfficerLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAuth("OFFICER");
@@ -23,6 +24,7 @@ export default async function OfficerLayout({ children }: { children: React.Reac
             <Link href="/officer/dashboard" className="text-sm font-medium text-slate-300 hover:text-white">Queue Dashboard</Link>
           </nav>
           <div className="flex items-center gap-4 border-l pl-4 border-slate-700">
+            <PillLanguageToggle variant="dark" />
             <div className="text-sm text-right">
               <p className="font-medium text-white">{session.name}</p>
               <p className="text-slate-400 text-xs">{session.department || "Admin"}</p>

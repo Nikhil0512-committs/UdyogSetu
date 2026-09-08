@@ -1,48 +1,233 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Shield, FileText, Globe, ChevronRight } from "lucide-react";
+import PillLanguageToggle from "@/components/pill-language-toggle";
+
+const heading = "font-[family-name:var(--font-fraunces)]";
+
+function WarliFigures() {
+  return (
+    <svg
+      viewBox="0 0 300 190"
+      fill="none"
+      className="w-full h-auto"
+      aria-hidden="true"
+    >
+      <line x1="20" y1="150" x2="280" y2="150" stroke="var(--cream)" strokeWidth="2" strokeLinecap="round" />
+      {[60, 150, 240].map((x, i) => (
+        <g key={x} stroke="var(--cream)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx={x} cy="58" r="9" />
+          <line x1={x} y1="67" x2={x} y2="112" />
+          <line x1={x} y1="82" x2={x - 16} y2={i === 1 ? 62 : 68} />
+          <line x1={x} y1="82" x2={x + 16} y2={i === 1 ? 68 : 62} />
+          <line x1={x} y1="112" x2={x - 13} y2="150" />
+          <line x1={x} y1="112" x2={x + 13} y2="150" />
+        </g>
+      ))}
+      <circle cx="256" cy="34" r="5" fill="var(--marigold)" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
-      <header className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold">U</div>
-          <span className="text-xl font-bold text-slate-800">UdyogSetu</span>
-        </div>
-        <div className="flex gap-4">
-          <Link href="/login?role=applicant">
-            <Button variant="outline">Applicant Login</Button>
-          </Link>
-          <Link href="/login?role=officer">
-            <Button>Officer Login</Button>
-          </Link>
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: "var(--cream)", color: "var(--ink-muted)" }}
+    >
+      {/* Nav */}
+      <header className="sticky top-0 z-10" style={{ backgroundColor: "var(--cream)" }}>
+        <div className="max-w-[1080px] mx-auto px-8 py-5 flex items-center justify-between">
+          <span
+            className={`${heading} text-xl font-medium`}
+            style={{ color: "var(--ashoka)" }}
+          >
+            UdyogSetu
+          </span>
+
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#how-it-works" className="text-sm text-slate-500 hover:text-slate-700" style={{ color: "var(--ink-muted)" }}>
+              How it works
+            </a>
+            <Link href="/login?role=officer" className="text-sm" style={{ color: "var(--ink-muted)" }}>
+              For officers
+            </Link>
+            <Link href="/login" className="text-sm" style={{ color: "var(--ink-muted)" }}>
+              Track application
+            </Link>
+          </nav>
+
+          <PillLanguageToggle />
         </div>
       </header>
-      
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto py-20">
-        <h1 className="text-5xl font-extrabold text-slate-900 tracking-tight mb-6">
-          Maharashtra Industrial Approvals Platform
-        </h1>
-        <p className="text-xl text-slate-600 mb-10 max-w-2xl">
-          A unified single-window portal for all industrial approvals, replacing department-by-department portals with smart routing, intelligent document wallets, and automated checklists.
-        </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom-4 duration-700 delay-150">
-            <Link href="/login">
-              <Button size="lg" className="text-lg px-8 py-6 h-auto w-full sm:w-auto">
-                Login to Portal <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/analytics">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 h-auto w-full sm:w-auto">
-                View State Analytics
-              </Button>
-            </Link>
+
+      {/* Hero */}
+      <section className="max-w-[1080px] mx-auto px-8 pt-10 pb-20">
+        <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
+          <div>
+            <p
+              className="text-xs font-semibold uppercase tracking-[0.12em] mb-4"
+              style={{ color: "var(--terracotta)" }}
+            >
+              Government of Maharashtra · Single Window
+            </p>
+            <h1
+              className={`${heading} font-medium mb-6`}
+              style={{ color: "var(--ashoka)", fontSize: "48px", lineHeight: 1.15 }}
+            >
+              Ek arj, <span className="not-italic" style={{ color: "var(--terracotta)" }}>saglya</span> manjuri.
+              <br />
+              One form, every approval.
+            </h1>
+            <p className="mb-8" style={{ fontSize: "17px", color: "var(--ink-muted)", maxWidth: "42ch" }}>
+              Tell UdyogSetu about your unit and it draws up your exact approval checklist, fills a single form
+              from the documents you upload, and sends it to every department that needs it — in English or
+              Marathi.
+            </p>
+            <div className="flex flex-wrap items-center gap-6">
+              <Link
+                href="/login"
+                className="inline-flex items-center px-6 py-3 rounded-md font-medium transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--terracotta)", color: "var(--cream)" }}
+              >
+                Start new application
+              </Link>
+              <Link
+                href="/login"
+                className="text-sm font-medium underline underline-offset-4"
+                style={{ color: "var(--ashoka)", textDecorationColor: "var(--marigold)" }}
+              >
+                Track application
+              </Link>
+            </div>
           </div>
-      </main>
-      
-      <footer className="py-6 text-center text-slate-500 border-t border-slate-200 bg-white">
-        &copy; {new Date().getFullYear()} Government of Maharashtra. All rights reserved.
+
+          <div className="rounded-2xl p-10" style={{ backgroundColor: "var(--forest)" }}>
+            <WarliFigures />
+          </div>
+        </div>
+      </section>
+
+      {/* Stats strip */}
+      <section style={{ backgroundColor: "var(--ashoka)" }}>
+        <div className="max-w-[1080px] mx-auto px-8 py-10 flex flex-wrap justify-around gap-8 text-center">
+          {[
+            { n: "15", l: "departments unified" },
+            { n: "18", l: "sectors recognised" },
+            { n: "2", l: "languages, equally supported" },
+            { n: "30d", l: "grievance SLA" },
+          ].map((s) => (
+            <div key={s.l}>
+              <div className={`${heading} font-semibold text-3xl`} style={{ color: "var(--marigold)" }}>
+                {s.n}
+              </div>
+              <div className="text-sm mt-1" style={{ color: "var(--cream)" }}>
+                {s.l}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" style={{ backgroundColor: "var(--cream-soft)" }}>
+        <div className="max-w-[1080px] mx-auto px-8 py-20">
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.12em] mb-3"
+            style={{ color: "var(--terracotta)" }}
+          >
+            How it works
+          </p>
+          <h2 className={`${heading} font-medium mb-3`} style={{ color: "var(--ashoka)", fontSize: "32px" }}>
+            Three steps, in your language.
+          </h2>
+          <p className="mb-12" style={{ maxWidth: "60ch", color: "var(--ink-muted)" }}>
+            No more guessing which department to approach first, or filing the same details six times over.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "1. Tell us about your unit",
+                body: "Sector, scale, district, and MIDC status — the same filters Maharashtra's own approval rules already use.",
+              },
+              {
+                title: "2. Get your checklist",
+                body: "The regulatory knowledge engine works out only the approvals your unit actually needs, and nothing it doesn't.",
+              },
+              {
+                title: "3. One form, sent everywhere",
+                body: "Upload each document once — it's auto-filled, verified, and dispatched to every relevant department at once.",
+              },
+            ].map((c) => (
+              <div
+                key={c.title}
+                className="bg-white rounded-xl p-[26px]"
+                style={{ border: "1px solid #e4dcc8" }}
+              >
+                <h3 className={`${heading} font-medium mb-2`} style={{ color: "var(--ashoka)", fontSize: "18px" }}>
+                  {c.title}
+                </h3>
+                <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
+                  {c.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section style={{ backgroundColor: "var(--terracotta)" }}>
+        <div className="max-w-[1080px] mx-auto px-8 py-20">
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.12em] mb-3"
+            style={{ color: "var(--marigold)" }}
+          >
+            Built for the gaps that are left
+          </p>
+          <h2
+            className={`${heading} font-medium mb-12`}
+            style={{ color: "var(--cream)", fontSize: "32px", maxWidth: "24ch" }}
+          >
+            Closing what the state&apos;s own reforms haven&apos;t reached yet.
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-x-10 gap-y-8">
+            {[
+              {
+                title: "Risk-based scrutiny",
+                body: "Low-risk units go straight to self-certification instead of waiting on a full manual review.",
+              },
+              {
+                title: "Schemes & incentives matcher",
+                body: "Surfaces the government schemes a unit already qualifies for, automatically.",
+              },
+              {
+                title: "Coordinated inspections",
+                body: "Bundles every department's site visit into one coordinated inspection instead of three.",
+              },
+              {
+                title: "Predictive timelines",
+                body: "A realistic ETA per approval, grounded in real department data instead of a fixed SLA.",
+              },
+            ].map((f) => (
+              <div key={f.title} className="pl-4" style={{ borderLeft: "2px solid var(--marigold)" }}>
+                <h3 className="font-semibold mb-1" style={{ color: "var(--cream)" }}>
+                  {f.title}
+                </h3>
+                <p className="text-sm" style={{ color: "var(--cream)", opacity: 0.85 }}>
+                  {f.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={{ backgroundColor: "var(--cream)" }}>
+        <div className="max-w-[1080px] mx-auto px-8 py-8 text-center text-sm" style={{ color: "var(--ink-muted)" }}>
+          UdyogSetu · उद्योगसेतू · A single window for Maharashtra&apos;s industrial approvals
+        </div>
       </footer>
     </div>
   );
