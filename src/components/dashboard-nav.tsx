@@ -27,10 +27,10 @@ export function DashboardNav() {
           <div key={item.href} className="relative group flex items-center">
             <Link 
               href={item.href} 
-              className={`text-sm font-medium py-2 border-b-2 transition-colors ${
+              className={`text-sm font-medium py-2 transition-colors ${
                 isActive 
-                  ? "border-blue-600 text-blue-700" 
-                  : "border-transparent text-slate-600 hover:text-slate-900"
+                  ? "text-blue-700" 
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {item.label}
