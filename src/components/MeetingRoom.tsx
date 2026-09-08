@@ -30,8 +30,10 @@ export default function MeetingRoom({
     if (!client || initDone.current) return;
 
     let subscription: { unsubscribe: () => void } | null = null;
+    let currentCall: any = null; // Track the call instance synchronously
 
     const joinCall = async (callInstance: any) => {
+      currentCall = callInstance;
       try {
         setStatus("Joining call...");
         await callInstance.join({ create: true });
@@ -64,9 +66,10 @@ export default function MeetingRoom({
 
     return () => {
       subscription?.unsubscribe();
-      if (call) {
-        call.leave().catch(() => {});
+      if (currentCall) {
+        currentCall.leave().catch(() => {});
       }
+      initDone.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
