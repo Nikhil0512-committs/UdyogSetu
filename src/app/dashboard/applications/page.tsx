@@ -29,7 +29,7 @@ export default async function ApplicationsPage() {
       eta: app.status === "APPROVED" ? "Issued" : (app.status === "QUERIED" ? "Response Needed" : "7-14 Days"),
       etaDaysLeft: app.status === "APPROVED" ? "Completed" : (app.status === "QUERIED" ? "Action Required" : "On track"),
       category,
-      queryNote: app.approvals.find(a => a.status === "REJECTED" || a.status === "QUERIED")?.officerNotes
+      queryNote: app.approvals.find(a => a.status === "REJECTED" || a.status === "QUERIED")?.officerComment
     };
   });
 
