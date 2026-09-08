@@ -30,80 +30,71 @@ function isLikelyIrrelevantFilename(fileName: string): boolean {
   return false;
 }
 
-function classifyByFilename(fileName: string): string | null {
-  const name = (fileName || "").toLowerCase();
+// Extract raw text segments directly from PDF stream buffer
+function extractTextFromPdfBase64(base64Data: string): string {
+  try {
+    const cleanBase64 = base64Data.replace(/^data:\w+\/[\w-+]+;base64,/, "");
+    const buffer = Buffer.from(cleanBase64, "base64");
+    const rawStr = buffer.toString("binary");
+    
+    const textSegments = rawStr.match(/\(([^()]{3,100})\)/g);
+    if (textSegments) {
+      return textSegments.map(s => s.slice(1, -1)).join(" ");
+    }
+  } catch (e) {
+    console.warn("PDF stream parse warning:", e);
+  }
+  return "";
+}
+
+function classifyByTextOrFilename(text: string, fileName: string): string | null {
+  const content = (text + " " + fileName).toLowerCase();
 
   const panRegex = /[a-z]{5}\d{4}[a-z]/i;
   const gstinRegex = /\d{2}[a-z]{5}\d{4}[a-z]\d[z][a-z0-9]/i;
   const udyamRegex = /udyam-[a-z]{2}-\d{2}-\d{7}/i;
 
-  if (panRegex.test(name) || name.includes("pan") || name.includes("income") || name.includes("tax")) {
+  if (panRegex.test(content) || content.includes("income tax") || content.includes("permanent account number") || content.includes("pan card") || content.includes("govt. of india")) {
     return "PAN card (Company/Proprietor)";
   }
-  if (gstinRegex.test(name) || name.includes("gst") || name.includes("tax_reg")) {
+  if (gstinRegex.test(content) || content.includes("gstin") || content.includes("gst reg") || content.includes("goods and services tax") || content.includes("tax registration")) {
     return "GST Registration Certificate";
   }
-  if (udyamRegex.test(name) || name.includes("udyam") || name.includes("incorporation") || name.includes("msme") || name.includes("cert")) {
+  if (udyamRegex.test(content) || content.includes("udyam") || content.includes("micro, small") || content.includes("msme") || content.includes("certificate of incorporation")) {
     return "Certificate of Incorporation / Udyam";
   }
-  if (name.includes("land") || name.includes("lease") || name.includes("712") || name.includes("7-12") || name.includes("khatoni") || name.includes("ownership") || name.includes("rent")) {
+  if (content.includes("7/12") || content.includes("7-12") || content.includes("khatoni") || content.includes("lease") || content.includes("land allotment") || content.includes("ownership deed")) {
     return "Land Ownership / Lease Allotment";
   }
-  if (name.includes("site") || name.includes("layout") || name.includes("building") || name.includes("plan") || name.includes("drawing") || name.includes("map") || name.includes("cad")) {
+  if (content.includes("site plan") || content.includes("layout plan") || content.includes("building plan") || content.includes("architectural drawing") || content.includes("floor plan")) {
     return "Site Layout Plan / Building Plan Drawing";
   }
-  if (name.includes("project") || name.includes("manufacturing") || name.includes("process") || name.includes("report") || name.includes("flow") || name.includes("dpr")) {
+  if (content.includes("project report") || content.includes("manufacturing process") || content.includes("detailed project") || content.includes("process flow")) {
     return "Project Report / Manufacturing Process Details";
   }
-  if (name.includes("aadhaar") || name.includes("aadhar") || name.includes("uid") || name.includes("signatory")) {
+  if (content.includes("aadhaar") || content.includes("aadhar") || content.includes("uidai") || content.includes("unique identification")) {
     return "Aadhaar of Authorized Signatory";
   }
-  if (name.includes("fire") || name.includes("noc")) {
+  if (content.includes("fire noc") || content.includes("fire services") || content.includes("provisional fire")) {
     return "Provisional Fire NOC";
   }
-  if (name.includes("pollution") || name.includes("mpcb") || name.includes("consent") || name.includes("cte")) {
+  if (content.includes("mpcb") || content.includes("pollution control") || content.includes("consent to establish")) {
     return "Consent to Establish (Water & Air)";
   }
-  if (name.includes("labour") || name.includes("shop") || name.includes("establishment") || name.includes("worker")) {
+  if (content.includes("shops and establishment") || content.includes("labour department") || content.includes("factories act")) {
     return "Shops & Establishment Registration";
   }
 
   return null;
 }
 
-// Generate dynamic data derived from filename hash
-function generateDynamicExtractedData(fileName: string, docType: string) {
-  const hash = fileName.split("").reduce((acc, char) => ((acc << 5) - acc) + char.charCodeAt(0), 0);
-  const positiveHash = Math.abs(hash);
-  
-  const numPart = (1000 + (positiveHash % 8999)).toString();
-  const charPart1 = String.fromCharCode(65 + (positiveHash % 26)) + String.fromCharCode(65 + ((positiveHash >> 2) % 26)) + String.fromCharCode(65 + ((positiveHash >> 4) % 26));
-  const charPart2 = String.fromCharCode(65 + ((positiveHash >> 3) % 26));
-  
-  const companyPrefixes = ["Sahyadri", "Vidarbha", "Marathwada", "Konkan", "Deccan", "Apex", "Nova", "Zenith"];
-  const companySectors = ["Agro Tech", "Pharma Labs", "Steel Works", "Food Processing", "Polymers", "Clean Energy", "Engineering"];
-  
-  const prefix = companyPrefixes[positiveHash % companyPrefixes.length];
-  const sector = companySectors[(positiveHash >> 3) % companySectors.length];
-  const dynamicCompany = `${prefix} ${sector} Pvt Ltd`;
-  
-  const plotNum = (positiveHash % 120) + 1;
-  const zones = ["MIDC Chakan, Pune", "MIDC Butibori, Nagpur", "MIDC Waluj, Chhatrapati Sambhajinagar", "MIDC Rabale, Navi Mumbai", "MIDC Tarapur, Palghar"];
-  const dynamicAddress = `Plot No. ${plotNum}, ${zones[positiveHash % zones.length]}`;
-
-  // ONLY extract/assign PAN if the document is a PAN card, GST cert, or Udyam cert!
-  const isPanDoc = docType.includes("PAN") || docType.includes("GST") || docType.includes("Udyam") || docType.includes("Incorporation");
-  const isGstinDoc = docType.includes("GST") || docType.includes("Udyam") || docType.includes("Incorporation");
-
-  const dynamicPan = isPanDoc ? `AA${charPart1}${numPart}${charPart2}` : "";
-  const dynamicGstin = isGstinDoc ? `27${dynamicPan || "ABCDE1234F"}1Z${(positiveHash % 9) + 1}` : "";
-
-  return {
-    pan: dynamicPan,
-    gstin: dynamicGstin,
-    companyName: dynamicCompany,
-    address: dynamicAddress
-  };
+function extractCompanyFromText(text: string): string {
+  const companyRegex = /([A-Z0-9\s&.\-]{3,40}(?:Pvt|Private|Ltd|Limited|Industries|Enterprises|Services|Works|Co|Corporation|Traders))/i;
+  const match = text.match(companyRegex);
+  if (match && match[1].trim().length > 3) {
+    return match[1].trim();
+  }
+  return "";
 }
 
 export async function POST(req: Request) {
@@ -122,21 +113,23 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    let detectedDocKey = targetDocName || classifyByFilename(fileName) || "Certificate of Incorporation / Udyam";
-
-    // Generate dynamic baseline OCR data matching this exact file and document type
-    const dynamicData = generateDynamicExtractedData(fileName || "doc.pdf", detectedDocKey);
+    // Extract text from PDF buffer if PDF
+    const pdfText = (mimeType === "application/pdf" || fileName?.endsWith(".pdf")) ? extractTextFromPdfBase64(fileBase64) : "";
     
-    let extractedPan = dynamicData.pan;
-    let extractedGstin = dynamicData.gstin;
-    let extractedCompany = dynamicData.companyName;
-    let extractedAddress = dynamicData.address;
+    // Classify by PDF text or filename
+    let detectedDocKey = targetDocName || classifyByTextOrFilename(pdfText, fileName) || "";
 
-    // Check if filename explicitly contains regex PAN or GSTIN
-    const panMatch = (fileName || "").match(/[a-z]{5}\d{4}[a-z]/i);
+    // Extract regex patterns from PDF text or filename
+    let extractedPan = "";
+    let extractedGstin = "";
+    let extractedCompany = extractCompanyFromText(pdfText);
+    let extractedAddress = "";
+
+    const combinedText = pdfText + " " + fileName;
+    const panMatch = combinedText.match(/[a-z]{5}\d{4}[a-z]/i);
     if (panMatch) extractedPan = panMatch[0].toUpperCase();
 
-    const gstinMatch = (fileName || "").match(/\d{2}[a-z]{5}\d{4}[a-z]\d[z][a-z0-9]/i);
+    const gstinMatch = combinedText.match(/\d{2}[a-z]{5}\d{4}[a-z]\d[z][a-z0-9]/i);
     if (gstinMatch) extractedGstin = gstinMatch[0].toUpperCase();
 
     // Multimodal Gemini 1.5 Flash Vision Inspection
@@ -145,18 +138,19 @@ export async function POST(req: Request) {
     if (apiKey && fileBase64) {
       try {
         const cleanBase64 = fileBase64.replace(/^data:\w+\/[\w-+]+;base64,/, "");
+        const isPdf = mimeType === "application/pdf" || fileName?.endsWith(".pdf");
         
         const systemPrompt = `You are an expert Indian Business Document Classifier & OCR Extractor.
-Analyze the document image carefully. Extract ONLY the text that is actually printed on the document.
+Analyze the document. Extract ONLY text that is actually printed on the document.
 
 If the image is irrelevant or non-document, return "isIrrelevant": true.
 
 Otherwise, extract:
-- documentType
-- companyName (exact company name on document if present)
+- documentType (one of: PAN card (Company/Proprietor), Certificate of Incorporation / Udyam, GST Registration Certificate, Land Ownership / Lease Allotment, Site Layout Plan / Building Plan Drawing, Project Report / Manufacturing Process Details, Aadhaar of Authorized Signatory, Provisional Fire NOC, Consent to Establish (Water & Air), Shops & Establishment Registration)
+- companyName (exact company name on document if present, otherwise empty string "")
 - pan (exact 10-char PAN if explicitly present on document, otherwise empty string "")
 - gstin (exact 15-char GSTIN if explicitly present on document, otherwise empty string "")
-- address (exact address if present)
+- address (exact address if present, otherwise empty string "")
 
 Respond ONLY in JSON format:
 {
@@ -168,6 +162,10 @@ Respond ONLY in JSON format:
   "address": string
 }`;
 
+        const fileContentPart = isPdf
+          ? { type: "file" as const, mimeType: "application/pdf", data: cleanBase64 }
+          : { type: "image" as const, image: cleanBase64 };
+
         const result = await generateText({
           model: google("gemini-1.5-flash"),
           system: systemPrompt,
@@ -175,11 +173,8 @@ Respond ONLY in JSON format:
             {
               role: "user",
               content: [
-                { type: "text", text: `Analyze and extract actual text from this file: ${fileName}` },
-                {
-                  type: "image",
-                  image: cleanBase64,
-                },
+                { type: "text", text: `Analyze and extract text from file: ${fileName}` },
+                fileContentPart,
               ],
             },
           ],
@@ -197,8 +192,8 @@ Respond ONLY in JSON format:
           }
           if (parsed.documentType && !targetDocName) detectedDocKey = parsed.documentType;
           if (parsed.companyName && parsed.companyName.length > 2) extractedCompany = parsed.companyName;
-          extractedPan = (parsed.pan && parsed.pan.length === 10) ? parsed.pan : (detectedDocKey.includes("PAN") ? extractedPan : "");
-          extractedGstin = (parsed.gstin && parsed.gstin.length === 15) ? parsed.gstin : (detectedDocKey.includes("GST") ? extractedGstin : "");
+          if (parsed.pan && parsed.pan.length === 10) extractedPan = parsed.pan;
+          if (parsed.gstin && parsed.gstin.length === 15) extractedGstin = parsed.gstin;
           if (parsed.address && parsed.address.length > 5) extractedAddress = parsed.address;
         }
       } catch (geminiError) {
@@ -216,7 +211,7 @@ Respond ONLY in JSON format:
 
     return NextResponse.json({
       success: true,
-      documentType: detectedDocKey,
+      documentType: detectedDocKey || "Certificate of Incorporation / Udyam",
       extractedData: {
         companyName: extractedCompany,
         pan: extractedPan,
