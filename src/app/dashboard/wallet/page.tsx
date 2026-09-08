@@ -246,9 +246,6 @@ export default function DocumentWalletPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Document Wallet</h1>
-            <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-800 font-semibold px-2 py-0.5">
-              DigiLocker Synced
-            </Badge>
           </div>
           <p className="text-slate-700 mt-1">
             Store and manage verified master business documents for seamless reuse across all Single Window applications.
@@ -256,17 +253,6 @@ export default function DocumentWalletPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start md:self-auto">
-          <Button
-            variant="outline"
-            className="border-slate-300 text-slate-700 hover:bg-slate-100 gap-2 font-medium"
-            onClick={() => {
-              setUploadSuccessMessage("Syncing verified records from State Vault & DigiLocker...");
-              setTimeout(() => setUploadSuccessMessage(null), 3000);
-            }}
-          >
-            <RefreshCw className="w-4 h-4 text-slate-700" />
-            Sync DigiLocker
-          </Button>
           <a href="#upload-section">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-medium">
               <Plus className="w-4 h-4" />
