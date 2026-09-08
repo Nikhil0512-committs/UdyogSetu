@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   StreamCall,
   StreamTheme,
-  SpeakerLayout,
+  PaginatedGridLayout,
   CallControls,
   useStreamVideoClient,
 } from "@stream-io/video-react-sdk";
@@ -98,8 +98,8 @@ export default function MeetingRoom({
     <StreamTheme>
       <StreamCall call={call}>
         <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
-          <div className="flex-1 relative overflow-hidden">
-            <SpeakerLayout />
+          <div className="flex-1 relative overflow-hidden flex items-center justify-center">
+            <PaginatedGridLayout />
           </div>
           <div className="bg-slate-800 p-4 border-t border-slate-700 flex justify-center">
             <CallControls onLeave={() => router.back()} />
