@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ChevronRight, Filter, Info, Lightbulb, Sparkles, TrendingUp, Zap } from "lucide-react";
 import Link from "next/link";
+import { SchemesHeader } from "./schemes-header";
 
 export default async function SchemesPage() {
   const session = await requireAuth("APPLICANT");
@@ -60,29 +61,7 @@ export default async function SchemesPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-blue-600 mb-2">
-            <Sparkles className="w-5 h-5" />
-            <span className="font-semibold text-sm tracking-wider uppercase">AI Schemes Matcher</span>
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900">Incentives & Subsidies</h1>
-          <p className="text-slate-600 mt-2 max-w-2xl">
-            Based on your enterprise profile, our Smart Matcher has identified government schemes you are highly eligible for. Applying for these can significantly reduce your capital costs.
-          </p>
-        </div>
-        
-        <div className="bg-white p-3 rounded-lg border border-slate-200 flex items-center gap-4 shadow-sm">
-          <div className="bg-blue-100 p-2 rounded-full">
-            <Filter className="w-5 h-5 text-blue-700" />
-          </div>
-          <div className="text-sm">
-            <p className="text-slate-500">Matching Profile:</p>
-            <p className="font-semibold text-slate-900">Micro • Manufacturing • Pune</p>
-          </div>
-          <Button variant="outline" size="sm" className="ml-2">Edit Profile</Button>
-        </div>
-      </div>
+      <SchemesHeader />
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
