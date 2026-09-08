@@ -86,12 +86,12 @@ export default function ApplyPage() {
           const docKey = targetDocName || data.documentType || "Certificate of Incorporation / Udyam";
           
           if (data.extractedData) {
-            setFormData(prev => ({
-              pan: prev.pan || data.extractedData.pan || "ABCDE1234F",
-              companyName: prev.companyName || data.extractedData.companyName || "Acme Industries Pvt Ltd",
-              address: prev.address || data.extractedData.address || "Plot 42, MIDC Hinjewadi, Pune",
-              gstin: prev.gstin || data.extractedData.gstin || "27ABCDE1234F1Z5"
-            }));
+            setFormData({
+              pan: data.extractedData.pan,
+              companyName: data.extractedData.companyName,
+              address: data.extractedData.address,
+              gstin: data.extractedData.gstin
+            });
           }
 
           setUploadedDocs(prev => ({
@@ -125,11 +125,15 @@ export default function ApplyPage() {
   };
 
   const handleAutoFillAllDemo = () => {
+    const randomNum = Math.floor(1000 + Math.random() * 8999);
+    const demoPan = `MH` + String.fromCharCode(65 + Math.floor(Math.random() * 26)) + String.fromCharCode(65 + Math.floor(Math.random() * 26)) + randomNum + `P`;
+    const demoGstin = `27${demoPan}1Z5`;
+    
     setFormData({
-      pan: "ABCDE1234F",
-      companyName: "Acme Industries Pvt Ltd",
-      address: "Plot 42, MIDC Hinjewadi, Pune",
-      gstin: "27ABCDE1234F1Z5"
+      pan: demoPan,
+      companyName: "Sahyadri Industrial Works Pvt Ltd",
+      address: "Plot No. 42, MIDC Chakan, Pune",
+      gstin: demoGstin
     });
     const newDocs: Record<string, { uploaded: boolean; fileName: string }> = {};
     universalDocs.forEach(d => {
