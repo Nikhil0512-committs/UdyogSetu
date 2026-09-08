@@ -31,7 +31,7 @@ export default function MeetingRoom({ callId, userId, userName }: { callId: stri
         const token = await generateStreamToken(userId);
         
         activeClient = new StreamVideoClient({
-          apiKey: "9mqqvbvvtfs8",
+          apiKey: process.env.NEXT_PUBLIC_STREAM_API_KEY || "9mqqvbvvtfs8",
           user: { id: userId, name: userName },
           token,
         });

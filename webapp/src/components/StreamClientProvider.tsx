@@ -78,7 +78,7 @@ export default function StreamClientProvider({ children, userId, userName }: { c
     const init = async () => {
       const token = await generateStreamToken(userId);
       client = new StreamVideoClient({
-        apiKey: "9mqqvbvvtfs8",
+        apiKey: process.env.NEXT_PUBLIC_STREAM_API_KEY || "9mqqvbvvtfs8",
         user: { id: userId, name: userName },
         token,
       });

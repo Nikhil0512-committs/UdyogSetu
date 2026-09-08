@@ -2,8 +2,8 @@
 
 import { StreamClient } from "@stream-io/node-sdk";
 
-const apiKey = "9mqqvbvvtfs8";
-const apiSecret = "sca69wu4g4xujacdzujxnxupeu94j2q384yeyn8qkdzqvdtxu52v476pbt3pwfsx";
+const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || "9mqqvbvvtfs8";
+const apiSecret = process.env.STREAM_API_SECRET || "sca69wu4g4xujacdzujxnxupeu94j2q384yeyn8qkdzqvdtxu52v476pbt3pwfsx";
 
 export async function generateStreamToken(userId: string) {
   if (!apiKey || !apiSecret) {
