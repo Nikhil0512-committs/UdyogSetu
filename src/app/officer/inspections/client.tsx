@@ -11,28 +11,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
-import { notifyReschedule } from "@/actions/notifications";
+import { notifyReschedule, fetchMeetingSchedule } from "@/actions/notifications";
 
 export default function OfficerInspectionsClient({ officerId }: { officerId: string }) {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [date, setDate] = useState("2026-08-30");
-  const [time, setTime] = useState("15:00");
+  const [schedule, setSchedule] = useState({
+    date: "2026-08-28",
+    time: "15:00",
+    formatted: "28 Aug 2026, 03:00 PM"
+  });
+  const [date, setDate] = useState(schedule.date);
+  const [time, setTime] = useState(schedule.time);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const router = useRouter();
   const client = useStreamVideoClient();
 
+  React.useEffect(() => {
+    fetchMeetingSchedule().then((s) => {
+      setSchedule(s);
+      setDate(s.date);
+      setTime(s.time);
+    });
+  }, []);
+
   const handleRescheduleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await notifyReschedule({
+      const res = await notifyReschedule({
         to: "applicant",
         newDate: date,
         newTime: time,
         reason,
         initiator: "Officer",
       });
+      setSchedule(res.newSchedule);
       toast.success("Reschedule request sent! The applicant has been notified.");
       setRescheduleOpen(false);
       setReason("");
@@ -102,7 +116,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
                 <User className="h-4 w-4" /> Applicant Rep: Rahul Sharma
               </p>
               <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
-                <Clock className="h-4 w-4" /> 28 Aug 2026, 03:00 PM
+                <Clock className="h-4 w-4" /> {schedule.formatted}
               </p>
               <div className="space-y-2 mt-4">
                 <h4 className="text-sm font-medium text-slate-900">Officer Guidelines:</h4>

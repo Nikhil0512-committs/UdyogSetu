@@ -232,3 +232,27 @@ export function addUser(user: { id: string, name: string, companyName: string, r
   const cleanId = user.id.replace(/\s+/g, '');
   globalAny.mockUsers.push({ ...user, id: cleanId });
 }
+
+if (!globalAny.mockMeetingSchedule) {
+  globalAny.mockMeetingSchedule = {
+    date: "2026-08-28",
+    time: "15:00",
+    formatted: "28 Aug 2026, 03:00 PM"
+  };
+}
+
+export function getMeetingSchedule() {
+  return globalAny.mockMeetingSchedule;
+}
+
+export function updateMeetingSchedule(date: string, time: string) {
+  const formatted = new Date(`${date}T${time}`).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  globalAny.mockMeetingSchedule = { date, time, formatted };
+  return globalAny.mockMeetingSchedule;
+}
