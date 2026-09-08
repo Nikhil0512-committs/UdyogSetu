@@ -105,18 +105,19 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-800 font-medium">
-                {role === "APPLICANT" ? "Aadhaar Number" : "Employee ID"}
+                {role === "APPLICANT" ? "Email Address" : "Employee ID"}
               </Label>
               <Input
                 key={`login-id-${role}`}
-                placeholder={role === "APPLICANT" ? "1234 5678 9012" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
+                type={role === "APPLICANT" ? "email" : "text"}
+                placeholder={role === "APPLICANT" ? "admin@company.com" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
                 required
-                defaultValue={role === "APPLICANT" ? "1234 5678 9012" : ""}
+                defaultValue={role === "APPLICANT" ? "admin@company.com" : ""}
                 className="text-slate-900"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-800 font-medium">Password / OTP</Label>
+              <Label className="text-slate-800 font-medium">Password</Label>
               <Input type="password" placeholder="••••••••" required defaultValue="password123" />
             </div>
             

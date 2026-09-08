@@ -19,12 +19,13 @@ export default function SignupPage() {
     setError("");
 
     const form = e.target as HTMLFormElement;
-    const aadhaar = (form.elements.namedItem("aadhaar") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
     const company = (form.elements.namedItem("company") as HTMLInputElement).value;
 
-    if (aadhaar.replace(/\s+/g, "").length !== 12) {
-      setError("Aadhaar Number must be exactly 12 digits.");
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
       setLoading(false);
       return;
     }
@@ -33,7 +34,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: aadhaar, name, companyName: company, role: "APPLICANT" }),
+        body: JSON.stringify({ email, password, name, companyName: company, role: "APPLICANT" }),
       });
 
       const data = await res.json();
@@ -47,7 +48,7 @@ export default function SignupPage() {
       await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: aadhaar, role: "APPLICANT" })
+        body: JSON.stringify({ id: email, role: "APPLICANT" })
       });
 
       router.push("/dashboard");
@@ -76,12 +77,12 @@ export default function SignupPage() {
             <Input name="company" placeholder="Acme Industries" required />
           </div>
           <div className="space-y-2">
-            <Label>Aadhaar Number (12 digits)</Label>
-            <Input name="aadhaar" placeholder="1234 5678 9012" required />
+            <Label>Email Address</Label>
+            <Input type="email" name="email" placeholder="admin@company.com" required />
           </div>
           <div className="space-y-2">
             <Label>Create Password</Label>
-            <Input type="password" placeholder="••••••••" required />
+            <Input type="password" name="password" placeholder="••••••••" required />
           </div>
 
           {error && (

@@ -5,11 +5,10 @@ import { prisma } from "@/lib/db";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, companyName, role } = body;
+    const { email, password, name, companyName, role } = body;
     
-    const inputId = id || "1234 5678 9012";
-    const cleanId = inputId.replace(/\s+/g, "").toLowerCase();
-    const userEmail = `${cleanId}@udyogsetu.gov.in`;
+    // Fallback to legacy id property if still passed (for compatibility)
+    const userEmail = (email || body.id || "admin@acme.com").toLowerCase().trim();
 
     const userName = name || "Rahul Sharma";
     const company = companyName || "Acme Industries";
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
           name: userName,
           email: userEmail,
           companyName: company,
-          panNumber: cleanId,
+          panNumber: "DEFAULT_PAN",
           role: role || "APPLICANT",
         }
       });
@@ -36,9 +35,9 @@ export async function POST(request: Request) {
     }
 
     // Register in mock store for UI compatibility
-    addUser({ id: cleanId, name: userName, companyName: company, role: role || "APPLICANT" });
+    addUser({ id: userEmail, name: userName, companyName: company, role: role || "APPLICANT" });
     
-    return NextResponse.json({ success: true, user: dbUser || { id: cleanId, name: userName, companyName: company, role: role || "APPLICANT" } });
+    return NextResponse.json({ success: true, user: dbUser || { id: userEmail, name: userName, companyName: company, role: role || "APPLICANT" } });
   } catch (error: any) {
     console.error("Signup API Error:", error);
     return NextResponse.json({ success: false, error: error.message || "Failed to register user." }, { status: 500 });

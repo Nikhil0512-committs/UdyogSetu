@@ -8,15 +8,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { role, name, department, id } = body;
     
-    const inputId = id || (role === "APPLICANT" ? "1234 5678 9012" : "OFF-001");
-    const cleanId = inputId.replace(/\s+/g, "").toLowerCase();
+    const inputId = id || (role === "APPLICANT" ? "admin@acme.com" : "OFF-001");
+    const cleanId = inputId.toLowerCase().trim();
     
     let dbUser = null;
     let resolvedName = name || (role === "APPLICANT" ? "Rahul Sharma" : `Officer (${department || "Admin"})`);
     let resolvedUserId = role === "APPLICANT" ? cleanId : `off-${(department || "admin").toLowerCase().replace(/[^a-z0-9]/g, "")}-1`;
 
     if (role === "APPLICANT") {
-      const userEmail = `${cleanId}@udyogsetu.gov.in`;
+      const userEmail = cleanId;
 
       // Seamlessly upsert any dummy ID directly into the Neon PostgreSQL database
       try {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
             name: resolvedName,
             email: userEmail,
             companyName: "Acme Steel Industries",
-            panNumber: cleanId,
+            panNumber: "DEFAULT_PAN",
             role: "APPLICANT",
           }
         });
