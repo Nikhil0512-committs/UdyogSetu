@@ -174,14 +174,37 @@ export default function DocumentWalletPage() {
     return true;
   });
 
-  const handleSimulatedUpload = (fileObj?: File) => {
-    const newDocName = fileObj ? fileObj.name : `${uploadDocType.toLowerCase().replace(/\s+/g, "_")}_doc.pdf`;
+  const handleSimulatedUpload = (fileObj: File) => {
+    const lowerName = fileObj.name.toLowerCase();
+    const typeLower = uploadDocType.toLowerCase();
+    
+    let isValid = false;
+    if (typeLower === "pan card" && lowerName.includes("pan")) isValid = true;
+    else if (typeLower === "certificate of incorporation" && (lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert"))) isValid = true;
+    else if (typeLower === "gst certificate" && lowerName.includes("gst")) isValid = true;
+    else if (typeLower === "land allotment letter" && (lowerName.includes("land") || lowerName.includes("allotment") || lowerName.includes("lease"))) isValid = true;
+    else if (typeLower === "site layout plan" && (lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("plan") || lowerName.includes("drawing"))) isValid = true;
+    else if (typeLower === "aadhaar" && lowerName.includes("aadhaar")) isValid = true;
+    else {
+      // Fallback keyword check for other document types
+      const typeTokens = typeLower.split(/[\s_\-\.]+/).filter(t => t.length > 3);
+      if (typeTokens.length > 0 && typeTokens.some(t => lowerName.includes(t))) {
+        isValid = true;
+      }
+    }
+
+    if (!isValid) {
+      toast.error(`Document mismatch. The uploaded file does not appear to be a valid ${uploadDocType}.`);
+      return;
+    }
+
+    const newDocName = fileObj.name;
     const newDoc: WalletDocument = {
       id: `DOC-NEW-${Date.now().toString().slice(-4)}`,
       type: uploadDocType,
       docNumber: uploadDocNumber || `IN-${Math.floor(100000 + Math.random() * 900000)}`,
       fileName: newDocName,
-      fileSize: fileObj ? `${(fileObj.size / (1024 * 1024)).toFixed(1)} MB` : "1.8 MB",
+      fileSize: `${(fileObj.size / (1024 * 1024)).toFixed(1)} MB`,
       uploadDate: "Just now",
       expiryDate: "Lifetime Validity",
       isExpiringSoon: false,
@@ -376,7 +399,10 @@ export default function DocumentWalletPage() {
 
                 <div className="pt-2">
                   <Button
-                    onClick={() => handleSimulatedUpload()}
+                    onClick={() => {
+                      const input = document.getElementById("file-upload-input") as HTMLInputElement;
+                      if (input) input.click();
+                    }}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium gap-2"
                   >
                     <UploadCloud className="w-4 h-4" />
