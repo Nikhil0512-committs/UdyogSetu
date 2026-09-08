@@ -14,23 +14,28 @@ import { useRouter } from "next/navigation";
 
 const API_KEY = "9mqqvbvvtfs8";
 
+import { useCalls, CallingState } from "@stream-io/video-react-sdk";
+
 // Incoming call modal — lives inside <StreamVideo> so hooks work
 function IncomingCallModal() {
   const router = useRouter();
-  const client = useStreamVideoClient();
-  const [incomingCall, setIncomingCall] = useState<any>(null);
+  const calls = useCalls();
+  const [activeCall, setActiveCall] = useState<any>(null);
+
+  // Find the first incoming call that is ringing
+  const ringingCall = calls.find(
+    (call) => !call.isCreatedByMe && call.state.callingState === CallingState.RINGING
+  );
 
   useEffect(() => {
-    if (!client) return;
-    const unsub = client.on("call.ring", (event: any) => {
-      if (!event?.call_cid) return;
-      const [callType, callId] = event.call_cid.split(":");
-      setIncomingCall(client.call(callType, callId));
-    });
-    return () => unsub();
-  }, [client]);
+    if (ringingCall && !activeCall) {
+      setActiveCall(ringingCall);
+    }
+  }, [ringingCall, activeCall]);
 
-  if (!incomingCall) return null;
+  if (!activeCall) return null;
+
+  const incomingCall = activeCall;
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center backdrop-blur-sm">
@@ -44,7 +49,7 @@ function IncomingCallModal() {
         </div>
         <div className="flex gap-8">
           <button
-            onClick={() => { incomingCall.reject(); setIncomingCall(null); }}
+            onClick={() => { incomingCall.reject(); setActiveCall(null); }}
             className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition shadow-lg"
           >
             <PhoneOff className="w-7 h-7 text-white" />
@@ -52,7 +57,7 @@ function IncomingCallModal() {
           <button
             onClick={async () => {
               await incomingCall.accept();
-              setIncomingCall(null);
+              setActiveCall(null);
               router.push(`/meeting/${incomingCall.id}`);
             }}
             className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center transition shadow-lg animate-bounce"
