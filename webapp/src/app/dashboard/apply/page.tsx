@@ -50,18 +50,33 @@ export default function ApplyPage() {
     // Simulate OCR processing on the uploaded file
     setTimeout(() => {
       setUploading(false);
+      
+      const lowerName = file.name.toLowerCase();
+      let docKey = "";
+      
+      if (lowerName.includes("pan")) {
+        docKey = "PAN card (Company/Proprietor)";
+      } else if (lowerName.includes("incorporation") || lowerName.includes("udyam")) {
+        docKey = "Certificate of Incorporation / Udyam";
+      } else if (lowerName.includes("gst")) {
+        docKey = "GST Registration Certificate";
+      }
+      
+      if (!docKey) {
+        toast.error("Could not recognize document. Please upload a valid PAN, GST, or Incorporation Certificate.");
+        return;
+      }
+
       setFormData({
         pan: "ABCDE1234F",
         companyName: "Acme Industries Pvt Ltd",
         address: "Plot 42, MIDC Hinjewadi, Pune",
         gstin: "27ABCDE1234F1Z5"
       });
-      // Mark the first 3 universal docs as uploaded via OCR
+      
       setUploadedDocs(prev => ({
         ...prev,
-        "PAN card (Company/Proprietor)": { uploaded: true, fileName: file.name },
-        "Certificate of Incorporation / Udyam": { uploaded: true, fileName: "auto-extracted" },
-        "GST Registration Certificate": { uploaded: true, fileName: "auto-extracted" },
+        [docKey]: { uploaded: true, fileName: file.name },
       }));
     }, 2500);
   };
