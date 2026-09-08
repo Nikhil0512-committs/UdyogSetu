@@ -203,7 +203,7 @@ export default function InspectionsPage() {
                 <div>
                   <h3 className="font-semibold text-slate-900">Low-Risk Self-Certification</h3>
                   <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
-                    <Building2 className="h-4 w-4" /> Labour Department
+                    <Building2 className="h-4 w-4" /> MIDC
                   </p>
                   <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
                     <Clock className="h-4 w-4" /> {schedule.formatted}
