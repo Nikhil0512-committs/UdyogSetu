@@ -20,9 +20,9 @@ export default function MeetingRoom({
   userName: string;
 }) {
   const client = useStreamVideoClient();
-  const [call, setCall] = useState<any>(null);
+  const [call, setCall] = useState<Call | null>(null);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("Waiting for connection...");
+  const [status, setStatus] = useState("Authenticating with video service...");
   const router = useRouter();
   const initDone = useRef(false);
 
@@ -53,7 +53,6 @@ export default function MeetingRoom({
     }
 
     // Otherwise wait for the user to connect (token fetch is async)
-    setStatus("Authenticating with video service...");
     subscription = client.state.connectedUser$.subscribe((user) => {
       if (user && !initDone.current) {
         initDone.current = true;

@@ -75,7 +75,7 @@ export function AgentChatPanel() {
   const toggleVoice = () => {
     if (isListening) return;
     
-    // @ts-ignore
+    // @ts-expect-error - Web Speech API typing is not fully supported in standard TS config
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice recognition is not supported in this browser.");
