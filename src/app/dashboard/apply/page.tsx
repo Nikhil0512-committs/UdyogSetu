@@ -75,6 +75,14 @@ export default function ApplyPage() {
           });
 
           const data = await res.json();
+
+          if (!data.success || data.isIrrelevant) {
+            toast.error(data.error || "Unrecognized or irrelevant file. Please upload a valid business document.");
+            setUploading(false);
+            resolve();
+            return;
+          }
+
           const docKey = targetDocName || data.documentType || "Certificate of Incorporation / Udyam";
           
           if (data.extractedData) {
@@ -94,12 +102,7 @@ export default function ApplyPage() {
           toast.success(`AI OCR Verified: ${docKey}`);
         } catch (err) {
           console.error("OCR Client Error:", err);
-          const docKey = targetDocName || "Certificate of Incorporation / Udyam";
-          setUploadedDocs(prev => ({
-            ...prev,
-            [docKey]: { uploaded: true, fileName: file.name }
-          }));
-          toast.success(`Uploaded: ${docKey}`);
+          toast.error("Failed to analyze document. Please upload a valid business document.");
         } finally {
           setUploading(false);
           resolve();
