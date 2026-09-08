@@ -51,7 +51,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
 
     setIsCalling(true);
     try {
-      const callId = "inspection-123";
+      const callId = `inspection-${Date.now()}`;
       const call = client.call("default", callId);
 
       // officerId comes from server session — always reliable, never empty
@@ -62,6 +62,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
       }
 
       await call.getOrCreate({ ring: true, data: { members } });
+      await call.ring();
       toast.success("Ringing applicant...");
       router.push(`/meeting/${callId}`);
     } catch (err: any) {
