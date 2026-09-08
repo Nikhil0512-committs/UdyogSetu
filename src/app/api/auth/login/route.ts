@@ -8,87 +8,53 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { role, name, department, id } = body;
     
-    let resolvedUserId = "";
-    let resolvedName = name || "Rahul Sharma";
+    const inputId = id || (role === "APPLICANT" ? "1234 5678 9012" : "OFF-001");
+    const cleanId = inputId.replace(/\s+/g, "").toLowerCase();
+    
     let dbUser = null;
+    let resolvedName = name || (role === "APPLICANT" ? "Rahul Sharma" : `Officer (${department || "Admin"})`);
+    let resolvedUserId = role === "APPLICANT" ? cleanId : `off-${(department || "admin").toLowerCase().replace(/[^a-z0-9]/g, "")}-1`;
 
-    if (role === "APPLICANT" && id) {
-      const cleanId = id.replace(/\s+/g, "");
+    if (role === "APPLICANT") {
       const userEmail = `${cleanId}@udyogsetu.gov.in`;
 
-      // 1. Query Neon PostgreSQL database for user
+      // Seamlessly upsert any dummy ID directly into the Neon PostgreSQL database
       try {
-        dbUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: userEmail },
-              { panNumber: cleanId }
-            ]
+        dbUser = await prisma.user.upsert({
+          where: { email: userEmail },
+          update: {
+            name: name || undefined
+          },
+          create: {
+            name: resolvedName,
+            email: userEmail,
+            companyName: "Acme Steel Industries",
+            panNumber: cleanId,
+            role: "APPLICANT",
           }
         });
+        if (dbUser) {
+          resolvedName = dbUser.name;
+          resolvedUserId = dbUser.id;
+        }
       } catch (dbError) {
-        console.warn("Prisma lookup error, using fallback:", dbError);
+        console.warn("Database upsert fallback for dummy ID:", dbError);
       }
 
-      // 2. Fallback to mock data if not in DB
-      const mockUser = getUserById(id);
-
-      if (!dbUser && !mockUser) {
-        // Auto-create applicant in Postgres DB for seamless experience
-        try {
-          dbUser = await prisma.user.create({
-            data: {
-              name: resolvedName,
-              email: userEmail,
-              companyName: "Acme Steel Industries",
-              panNumber: cleanId,
-              role: "APPLICANT",
-            }
-          });
-          addUser({ id: cleanId, name: resolvedName, companyName: "Acme Steel Industries", role: "APPLICANT" });
-        } catch (createErr) {
-          console.warn("Database auto-register fallback:", createErr);
-        }
-      } else if (dbUser) {
-        resolvedName = dbUser.name;
-        resolvedUserId = dbUser.id;
-      } else if (mockUser) {
-        resolvedName = mockUser.name;
-        resolvedUserId = mockUser.id;
-        
-        // Sync mock user to DB
-        try {
-          dbUser = await prisma.user.create({
-            data: {
-              name: mockUser.name,
-              email: userEmail,
-              companyName: mockUser.companyName || "Acme Industries",
-              panNumber: cleanId,
-              role: "APPLICANT",
-            }
-          });
-        } catch (syncErr) {
-          // ignore duplicate errors
-        }
-      }
-
-      if (!resolvedUserId) {
-        resolvedUserId = dbUser?.id || cleanId || "app-user-1";
-      }
+      // Also ensure local mock state knows about this user
+      addUser({ id: cleanId, name: resolvedName, companyName: "Acme Steel Industries", role: "APPLICANT" });
     } else if (role === "OFFICER") {
       const deptKey = (department || "admin").toLowerCase().replace(/[^a-z0-9]/g, "");
       const officerEmail = `officer-${deptKey}@udyogsetu.gov.in`;
-      const officerId = `off-${deptKey}-1`;
-      resolvedUserId = officerId;
-      resolvedName = name || `Officer (${department || "Admin"})`;
+      resolvedUserId = `off-${deptKey}-1`;
 
-      // Sync Officer to Postgres Database
+      // Seamlessly upsert officer into Neon PostgreSQL database
       try {
         dbUser = await prisma.user.upsert({
           where: { email: officerEmail },
           update: { name: resolvedName },
           create: {
-            id: officerId,
+            id: resolvedUserId,
             name: resolvedName,
             email: officerEmail,
             role: "OFFICER",
@@ -96,7 +62,7 @@ export async function POST(request: Request) {
           }
         });
       } catch (officerDbErr) {
-        console.warn("Officer DB sync warning:", officerDbErr);
+        console.warn("Officer DB upsert warning:", officerDbErr);
       }
     }
 
