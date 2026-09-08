@@ -86,7 +86,7 @@ export async function POST(req: Request) {
   }
 
   const result = await streamText({
-    model: google('gemini-3.6-flash'),
+    model: google('gemini-1.5-flash'),
     system: `${SYSTEM_PROMPT}\n\n[USER CONTEXT]\n${contextPrompt}\nIf the user asks for help or says they are stuck, provide helpful guidance relevant to this specific page context.`,
     messages,
   });

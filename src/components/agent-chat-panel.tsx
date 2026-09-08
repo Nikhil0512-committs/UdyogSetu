@@ -9,20 +9,32 @@ import ReactMarkdown from 'react-markdown';
 import { Message } from "ai";
 import { usePathname } from "next/navigation";
 
-const INITIAL_MESSAGES: Message[] = [
-  { 
-    id: "1", 
-    role: "assistant", 
-    content: "नमस्कार! मी उद्योगसेतू AI आहे. मी तुम्हाला कोणत्या सरकारी योजनांमध्ये मदत करू शकतो?\n\n(Hello! I am the UdyogSetu AI. Which government schemes can I help you find today?)" 
+const getInitialMessages = (pathname: string): Message[] => {
+  let content = "नमस्कार! मी उद्योगसेतू AI आहे. मी तुम्हाला कोणत्या सरकारी योजनांमध्ये मदत करू शकतो?\n\n(Hello! I am the UdyogSetu AI. Which government schemes can I help you find today?)";
+  
+  if (pathname.includes("/grievances")) {
+    content = "नमस्कार! मी उद्योगसेतू AI आहे. मी पाहतोय की तुम्ही तक्रार निवारण (Grievances) पानावर आहात. तुम्हाला नवीन तक्रार दाखल करायची आहे का जुन्या तक्रारीची स्थिती तपासायची आहे?\n\n(Hello! I see you are on the Grievances page. Do you need help filing a new complaint or tracking an existing one?)";
+  } else if (pathname.includes("/schemes")) {
+    content = "नमस्कार! मी पाहतोय की तुम्ही योजना (Schemes) पानावर आहात. तुमच्या व्यवसायासाठी योग्य योजना शोधण्यात मी मदत करू का?\n\n(Hello! I see you are looking at Schemes. Can I help you find the best subsidy for your business?)";
+  } else if (pathname.includes("/inspections")) {
+    content = "नमस्कार! व्हिडिओ तपासणी (Video Inspections) संदर्भात तुम्हाला काही अडचण आहे का?\n\n(Hello! Do you need help scheduling or joining your virtual inspection?)";
   }
-];
+
+  return [
+    { 
+      id: "1", 
+      role: "assistant", 
+      content 
+    }
+  ];
+};
 
 export function AgentChatPanel() {
   const pathname = usePathname();
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
-    initialMessages: INITIAL_MESSAGES,
+    initialMessages: getInitialMessages(pathname),
     body: {
       pathname
     }
@@ -64,7 +76,8 @@ export function AgentChatPanel() {
     recognition.start();
   };
 
-  const displayMessages = messages.length > 0 ? messages : INITIAL_MESSAGES;
+  const initialMsgs = getInitialMessages(pathname);
+  const displayMessages = messages.length > 0 ? messages : initialMsgs;
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
