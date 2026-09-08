@@ -69,12 +69,13 @@ export default function ApplyPage() {
             body: JSON.stringify({
               fileBase64,
               fileName: file.name,
-              mimeType: file.type || "application/pdf"
+              mimeType: file.type || "application/pdf",
+              targetDocName
             })
           });
 
           const data = await res.json();
-          const docKey = targetDocName || data.documentType || "PAN card (Company/Proprietor)";
+          const docKey = targetDocName || data.documentType || "Certificate of Incorporation / Udyam";
           
           if (data.extractedData) {
             setFormData(prev => ({
@@ -93,7 +94,7 @@ export default function ApplyPage() {
           toast.success(`AI OCR Verified: ${docKey}`);
         } catch (err) {
           console.error("OCR Client Error:", err);
-          const docKey = targetDocName || "PAN card (Company/Proprietor)";
+          const docKey = targetDocName || "Certificate of Incorporation / Udyam";
           setUploadedDocs(prev => ({
             ...prev,
             [docKey]: { uploaded: true, fileName: file.name }
