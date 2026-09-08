@@ -185,22 +185,28 @@ export default function DocumentWalletPage() {
     const typeLower = uploadDocType.toLowerCase();
     
     let isValid = false;
-    if (typeLower === "pan card" && lowerName.includes("pan")) isValid = true;
-    else if (typeLower === "certificate of incorporation" && (lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert") || lowerName.includes("cin"))) isValid = true;
-    else if (typeLower === "gst certificate" && lowerName.includes("gst")) isValid = true;
-    else if (typeLower === "land allotment letter" && (lowerName.includes("land") || lowerName.includes("allotment") || lowerName.includes("lease"))) isValid = true;
-    else if (typeLower === "site layout plan" && (lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("plan") || lowerName.includes("drawing"))) isValid = true;
-    else if (typeLower === "aadhaar" && lowerName.includes("aadhaar")) isValid = true;
-    else {
+    
+    if (typeLower === "pan card") {
+      isValid = lowerName.includes("pan");
+    } else if (typeLower === "certificate of incorporation") {
+      isValid = lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert") || lowerName.includes("cin");
+    } else if (typeLower === "gst certificate") {
+      isValid = lowerName.includes("gst");
+    } else if (typeLower === "land allotment letter") {
+      isValid = lowerName.includes("land") || lowerName.includes("allotment") || lowerName.includes("lease");
+    } else if (typeLower === "site layout plan") {
+      isValid = lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("plan") || lowerName.includes("drawing");
+    } else if (typeLower === "aadhaar") {
+      isValid = lowerName.includes("aadhaar");
+    } else {
       // Fallback keyword check for other document types
       const typeTokens = typeLower.split(/[\s_\-\.]+/).filter(t => t.length > 3);
-      if (typeTokens.length > 0 && typeTokens.some(t => lowerName.includes(t))) {
-        isValid = true;
-      }
+      isValid = typeTokens.length > 0 && typeTokens.some(t => lowerName.includes(t));
     }
 
     if (!isValid) {
-      toast.error(`Document mismatch. The uploaded file does not appear to be a valid ${uploadDocType}.`);
+      toast.error(`Document mismatch: The uploaded file "${selectedFile.name}" does not appear to be a valid ${uploadDocType}.`);
+      setSelectedFile(null);
       return;
     }
 
