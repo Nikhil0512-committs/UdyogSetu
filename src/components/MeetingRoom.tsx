@@ -20,7 +20,7 @@ export default function MeetingRoom({
   userName: string;
 }) {
   const client = useStreamVideoClient();
-  const [call, setCall] = useState<Call | null>(null);
+  const [call, setCall] = useState<any>(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Authenticating with video service...");
   const router = useRouter();
