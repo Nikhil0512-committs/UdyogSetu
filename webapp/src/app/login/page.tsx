@@ -89,7 +89,7 @@ export default function LoginPage() {
           {role === "OFFICER" && (
             <div className="space-y-2">
               <Label className="text-slate-800 font-medium">Select Your Department</Label>
-              <Select onValueChange={setDepartment} value={department}>
+              <Select onValueChange={(v) => v && setDepartment(v)} value={department}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose department..." />
                 </SelectTrigger>

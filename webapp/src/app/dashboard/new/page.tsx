@@ -132,7 +132,7 @@ export default function NewApplicationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label>Investment Scale (MSME)</Label>
-                <Select onValueChange={setScale} value={scale}>
+                <Select onValueChange={(v) => v && setScale(v)} value={scale}>
                   <SelectTrigger><SelectValue placeholder="Select scale" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="micro">Micro (Up to ₹2.5 Cr Inv)</SelectItem>
@@ -145,7 +145,7 @@ export default function NewApplicationPage() {
               
               <div className="space-y-2">
                 <Label>Industry Sector</Label>
-                <Select onValueChange={setSector} value={sector}>
+                <Select onValueChange={(v) => v && setSector(v)} value={sector}>
                   <SelectTrigger><SelectValue placeholder="Select sector" /></SelectTrigger>
                   <SelectContent className="max-h-60">
                     {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -155,7 +155,7 @@ export default function NewApplicationPage() {
               
               <div className="space-y-2">
                 <Label>Location District</Label>
-                <Select onValueChange={setDistrict} value={district}>
+                <Select onValueChange={(v) => v && setDistrict(v)} value={district}>
                   <SelectTrigger><SelectValue placeholder="Select district" /></SelectTrigger>
                   <SelectContent className="max-h-60">
                     {[
@@ -183,7 +183,7 @@ export default function NewApplicationPage() {
               
               <div className="space-y-2">
                 <Label>Is the plot inside MIDC?</Label>
-                <Select onValueChange={setMidc} value={midc}>
+                <Select onValueChange={(v) => v && setMidc(v)} value={midc}>
                   <SelectTrigger><SelectValue placeholder="Yes / No" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="yes">Yes</SelectItem>
@@ -194,7 +194,7 @@ export default function NewApplicationPage() {
 
               <div className="space-y-2 col-span-1 md:col-span-2">
                 <Label>Total Employees / Labour Band</Label>
-                <Select onValueChange={setEmployees} value={employees}>
+                <Select onValueChange={(v) => v && setEmployees(v)} value={employees}>
                   <SelectTrigger><SelectValue placeholder="Select workforce size" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Zero</SelectItem>
@@ -215,21 +215,21 @@ export default function NewApplicationPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
                 <div className="space-y-2">
                   <Label className="text-xs">Draws Groundwater?</Label>
-                  <Select onValueChange={setGroundwater} value={groundwater}>
+                  <Select onValueChange={(v) => v && setGroundwater(v)} value={groundwater}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No" /></SelectTrigger>
                     <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">High-Tension Power?</Label>
-                  <Select onValueChange={setPower} value={power}>
+                  <Select onValueChange={(v) => v && setPower(v)} value={power}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No" /></SelectTrigger>
                     <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Hazardous Substances?</Label>
-                  <Select onValueChange={setHazardous} value={hazardous}>
+                  <Select onValueChange={(v) => v && setHazardous(v)} value={hazardous}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No" /></SelectTrigger>
                     <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
                   </Select>
