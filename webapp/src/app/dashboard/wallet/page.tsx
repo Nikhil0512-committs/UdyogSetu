@@ -151,6 +151,7 @@ export default function DocumentWalletPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadDocType, setUploadDocType] = useState<string>("PAN Card");
   const [uploadDocNumber, setUploadDocNumber] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
 
   // Summary counts
@@ -174,13 +175,18 @@ export default function DocumentWalletPage() {
     return true;
   });
 
-  const handleSimulatedUpload = (fileObj: File) => {
-    const lowerName = fileObj.name.toLowerCase();
+  const handleSimulatedUpload = () => {
+    if (!selectedFile) {
+      toast.error("Please drag & drop or browse to select a file first.");
+      return;
+    }
+
+    const lowerName = selectedFile.name.toLowerCase();
     const typeLower = uploadDocType.toLowerCase();
     
     let isValid = false;
     if (typeLower === "pan card" && lowerName.includes("pan")) isValid = true;
-    else if (typeLower === "certificate of incorporation" && (lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert"))) isValid = true;
+    else if (typeLower === "certificate of incorporation" && (lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert") || lowerName.includes("cin"))) isValid = true;
     else if (typeLower === "gst certificate" && lowerName.includes("gst")) isValid = true;
     else if (typeLower === "land allotment letter" && (lowerName.includes("land") || lowerName.includes("allotment") || lowerName.includes("lease"))) isValid = true;
     else if (typeLower === "site layout plan" && (lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("plan") || lowerName.includes("drawing"))) isValid = true;
@@ -198,13 +204,13 @@ export default function DocumentWalletPage() {
       return;
     }
 
-    const newDocName = fileObj.name;
+    const newDocName = selectedFile.name;
     const newDoc: WalletDocument = {
       id: `DOC-NEW-${Date.now().toString().slice(-4)}`,
       type: uploadDocType,
       docNumber: uploadDocNumber || `IN-${Math.floor(100000 + Math.random() * 900000)}`,
       fileName: newDocName,
-      fileSize: `${(fileObj.size / (1024 * 1024)).toFixed(1)} MB`,
+      fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
       uploadDate: "Just now",
       expiryDate: "Lifetime Validity",
       isExpiringSoon: false,
@@ -216,6 +222,7 @@ export default function DocumentWalletPage() {
 
     setDocuments([newDoc, ...documents]);
     setUploadDocNumber("");
+    setSelectedFile(null);
     setUploadSuccessMessage(`"${uploadDocType}" uploaded successfully and queued for instant verification.`);
     setTimeout(() => {
       setUploadSuccessMessage(null);
@@ -416,6 +423,8 @@ export default function DocumentWalletPage() {
                 className={`lg:col-span-2 flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed transition-all cursor-pointer text-center ${
                   isDragging
                     ? "border-blue-600 bg-blue-50"
+                    : selectedFile
+                    ? "border-emerald-400 bg-emerald-50 hover:bg-emerald-100"
                     : "border-slate-300 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-400"
                 }`}
                 onDragOver={(e) => {
@@ -427,7 +436,7 @@ export default function DocumentWalletPage() {
                   e.preventDefault();
                   setIsDragging(false);
                   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    handleSimulatedUpload(e.dataTransfer.files[0]);
+                    setSelectedFile(e.dataTransfer.files[0]);
                   }
                 }}
                 onClick={() => {
@@ -442,20 +451,27 @@ export default function DocumentWalletPage() {
                   accept=".pdf,.png,.jpg,.jpeg"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      handleSimulatedUpload(e.target.files[0]);
+                      setSelectedFile(e.target.files[0]);
                     }
                   }}
                 />
 
-                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 mb-3 text-blue-600">
-                  <UploadCloud className="w-7 h-7" />
+                <div className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm border mb-3 ${selectedFile ? 'text-emerald-600 border-emerald-200' : 'text-blue-600 border-slate-200'}`}>
+                  {selectedFile ? <FileCheck className="w-7 h-7" /> : <UploadCloud className="w-7 h-7" />}
                 </div>
 
                 <h4 className="text-base font-semibold text-slate-900">
-                  Drag and drop your file here, or <span className="text-blue-600 underline">browse</span>
+                  {selectedFile ? (
+                    <span className="text-emerald-700">Selected: {selectedFile.name}</span>
+                  ) : (
+                    <>Drag and drop your file here, or <span className="text-blue-600 underline">browse</span></>
+                  )}
                 </h4>
                 <p className="text-sm text-slate-700 mt-1 max-w-md">
-                  Supports PDF, JPEG, or PNG formats up to 10 MB. Digital signature certificates (DSC) are accepted.
+                  {selectedFile 
+                    ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB - Click "Upload & Verify" on the left to submit` 
+                    : "Supports PDF, JPEG, or PNG formats up to 10 MB. Digital signature certificates (DSC) are accepted."
+                  }
                 </p>
 
                 <div className="flex items-center gap-4 mt-4 text-xs font-semibold text-slate-600">
