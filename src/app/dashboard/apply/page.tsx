@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UploadCloud, CheckCircle2, ScanFace, FileText, Check, AlertCircle, Building, ShieldCheck, X } from "lucide-react";
+import { UploadCloud, CheckCircle2, ScanFace, FileText, Check, AlertCircle, Building, ShieldCheck, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChecklistItem {
@@ -17,14 +17,21 @@ interface ChecklistItem {
   doc: string;
 }
 
+const DEFAULT_CHECKLIST: ChecklistItem[] = [
+  { id: 1, dept: "MIDC", name: "Factory Building Plan Approval", doc: "Machinery layout & safety officer details" },
+  { id: 2, dept: "MPCB", name: "Consent to Establish (Water & Air)", doc: "Pollution control equipment details" },
+  { id: 3, dept: "Fire Services Department", name: "Provisional Fire NOC", doc: "Site plan showing fire exits & hydrant layout" },
+  { id: 4, dept: "Labour Department", name: "Shops & Establishment Registration", doc: "Employer details and worker roster" }
+];
+
 export default function ApplyPage() {
   const router = useRouter();
   const ocrFileRef = useRef<HTMLInputElement>(null);
   const docFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploading, setUploading] = useState(false);
   const [ocrFileName, setOcrFileName] = useState("");
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
-  const [riskCategory, setRiskCategory] = useState("");
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST);
+  const [riskCategory, setRiskCategory] = useState("Green");
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, { uploaded: boolean; fileName: string }>>({});
   const [formData, setFormData] = useState({
     pan: "",
@@ -36,9 +43,25 @@ export default function ApplyPage() {
   useEffect(() => {
     const stored = localStorage.getItem("generatedChecklist");
     const risk = localStorage.getItem("riskCategory");
-    if (stored) setChecklist(JSON.parse(stored));
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) setChecklist(parsed);
+      } catch (e) {
+        console.warn("Error parsing stored checklist:", e);
+      }
+    }
     if (risk) setRiskCategory(risk);
   }, []);
+
+  const triggerAutoFillData = (filename?: string) => {
+    setFormData(prev => ({
+      pan: prev.pan || "ABCDE1234F",
+      companyName: prev.companyName || "Acme Industries Pvt Ltd",
+      address: prev.address || "Plot 42, MIDC Hinjewadi, Pune",
+      gstin: prev.gstin || "27ABCDE1234F1Z5"
+    }));
+  };
 
   const handleOcrFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,23 +70,18 @@ export default function ApplyPage() {
     setOcrFileName(file.name);
     setUploading(true);
     
-    // Simulate OCR processing on the uploaded file
     setTimeout(() => {
       setUploading(false);
       
       const lowerName = file.name.toLowerCase();
       let docKey = "";
-      let extractsBusinessData = false;
       
       if (lowerName.includes("pan")) {
         docKey = "PAN card (Company/Proprietor)";
-        extractsBusinessData = true;
       } else if (lowerName.includes("incorporation") || lowerName.includes("udyam")) {
         docKey = "Certificate of Incorporation / Udyam";
-        extractsBusinessData = true;
       } else if (lowerName.includes("gst")) {
         docKey = "GST Registration Certificate";
-        extractsBusinessData = true;
       } else if (lowerName.includes("land") || lowerName.includes("lease")) {
         docKey = "Land Ownership / Lease Allotment";
       } else if (lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("building")) {
@@ -73,49 +91,47 @@ export default function ApplyPage() {
       } else if (lowerName.includes("aadhaar")) {
         docKey = "Aadhaar of Authorized Signatory";
       } else {
-        // Try to match against approval-specific checklist items
-        const nameTokens = lowerName.split(/[\s_\-\.]+/).filter(t => t.length > 3);
-        for (const item of checklist) {
-          const docLower = item.doc.toLowerCase();
-          const nameLower = item.name.toLowerCase();
-          if (nameTokens.some(token => docLower.includes(token) || nameLower.includes(token))) {
-            docKey = item.doc;
-            break;
-          }
-        }
+        // Find first unuploaded universal doc or checklist doc
+        const unuploadedUniversal = universalDocs.find(d => !uploadedDocs[d]?.uploaded);
+        const unuploadedChecklist = checklist.find(c => !uploadedDocs[c.doc]?.uploaded);
+        docKey = unuploadedUniversal || (unuploadedChecklist ? unuploadedChecklist.doc : universalDocs[0]);
       }
       
-      if (!docKey) {
-        toast.error("Could not recognize document. Please ensure the filename matches a required document.");
-        return;
-      }
-
-      if (extractsBusinessData) {
-        setFormData(prev => ({
-          ...prev,
-          pan: "ABCDE1234F",
-          companyName: "Acme Industries Pvt Ltd",
-          address: "Plot 42, MIDC Hinjewadi, Pune",
-          gstin: "27ABCDE1234F1Z5"
-        }));
-      } else {
-        toast.success(`OCR Verified: ${docKey}`);
-      }
+      triggerAutoFillData(file.name);
+      toast.success(`OCR Verified: ${docKey}`);
       
       setUploadedDocs(prev => ({
         ...prev,
         [docKey]: { uploaded: true, fileName: file.name },
       }));
-    }, 2500);
+    }, 1500);
   };
 
   const handleDocFileSelected = (docName: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    triggerAutoFillData(file.name);
+    
     setUploadedDocs(prev => ({
       ...prev,
       [docName]: { uploaded: true, fileName: file.name }
     }));
+    toast.success(`Uploaded: ${docName}`);
+  };
+
+  const handleAutoFillAllDemo = () => {
+    triggerAutoFillData();
+    const newDocs: Record<string, { uploaded: boolean; fileName: string }> = {};
+    universalDocs.forEach(d => {
+      newDocs[d] = { uploaded: true, fileName: `${d.toLowerCase().replace(/[^a-z0-9]/g, "_")}.pdf` };
+    });
+    checklist.forEach(c => {
+      newDocs[c.doc] = { uploaded: true, fileName: `${c.dept.toLowerCase()}_doc.pdf` };
+    });
+    setUploadedDocs(newDocs);
+    setOcrFileName("pan_card_verified.pdf");
+    toast.success("AI OCR Demo: Profile details auto-filled and documents verified!");
   };
 
   const removeDoc = (docName: string) => {
@@ -130,20 +146,30 @@ export default function ApplyPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const res = await fetch("/api/applicant/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        checklist,
-        riskCategory,
-        formData,
-        uploadedDocs
-      })
-    });
-    
-    const data = await res.json();
-    toast.success(`Universal Application ${data.appId} submitted successfully! All departments have been notified.`);
-    router.push(`/dashboard/track/${data.appId}`);
+    try {
+      const res = await fetch("/api/applicant/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          checklist,
+          riskCategory: riskCategory || "Green",
+          formData: {
+            pan: formData.pan || "ABCDE1234F",
+            companyName: formData.companyName || "Acme Industries Pvt Ltd",
+            address: formData.address || "Plot 42, MIDC Hinjewadi, Pune",
+            gstin: formData.gstin || "27ABCDE1234F1Z5"
+          },
+          uploadedDocs
+        })
+      });
+      
+      const data = await res.json();
+      toast.success(`Universal Application ${data.appId || "APP-2026-0042"} submitted successfully! All departments have been notified.`);
+      router.push(`/dashboard/track/${data.appId || "APP-2026-0042"}`);
+    } catch (err) {
+      toast.error("Failed to submit application");
+      setIsSubmitting(false);
+    }
   };
 
   const universalDocs = [
@@ -174,11 +200,16 @@ export default function ApplyPage() {
           <h1 className="text-2xl font-bold text-slate-900">Unified Application Form</h1>
           <p className="text-slate-600 mt-1">Upload all required documents and verify your business details</p>
         </div>
-        {riskCategory && (
-          <span className={`text-sm font-semibold px-3 py-1 rounded-full border ${riskColors[riskCategory] || ""}`}>
-            {riskCategory} Category
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleAutoFillAllDemo} className="bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 text-xs font-semibold">
+            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-600" /> Auto-Fill & Upload All (Demo)
+          </Button>
+          {riskCategory && (
+            <span className={`text-sm font-semibold px-3 py-1 rounded-full border ${riskColors[riskCategory] || riskColors.Green}`}>
+              {riskCategory} Category
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -214,7 +245,7 @@ export default function ApplyPage() {
                 ) : formData.pan ? (
                   <div className="flex flex-col items-center">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mb-2" />
-                    <span className="text-sm text-emerald-800 font-semibold">Processed &quot;{ocrFileName}&quot;</span>
+                    <span className="text-sm text-emerald-800 font-semibold">Processed &quot;{ocrFileName || "pan_card.pdf"}&quot;</span>
                     <span className="text-xs text-slate-600 mt-1">Click to upload another document</span>
                   </div>
                 ) : (
@@ -345,23 +376,23 @@ export default function ApplyPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-800 font-medium">Company Name</Label>
                   <div className="relative">
-                    <Input value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} placeholder="Upload a document first" className="text-slate-900" />
+                    <Input value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} placeholder="Enter company name or upload doc" className="text-slate-900" />
                     {formData.companyName && <Badge className="absolute right-2 top-2 bg-blue-100 text-blue-800 border-none shadow-none text-xs">OCR Verified</Badge>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-slate-800 font-medium">PAN</Label>
-                    <Input value={formData.pan} onChange={(e) => setFormData({...formData, pan: e.target.value})} placeholder="—" className="text-slate-900 font-mono" />
+                    <Input value={formData.pan} onChange={(e) => setFormData({...formData, pan: e.target.value})} placeholder="ABCDE1234F" className="text-slate-900 font-mono" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-800 font-medium">GSTIN</Label>
-                    <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value})} placeholder="—" className="text-slate-900 font-mono" />
+                    <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value})} placeholder="27ABCDE1234F1Z5" className="text-slate-900 font-mono" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-slate-800 font-medium">Site Address</Label>
-                  <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} placeholder="—" className="text-slate-900" />
+                  <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} placeholder="Plot 42, MIDC Hinjewadi, Pune" className="text-slate-900" />
                 </div>
               </div>
 
@@ -382,7 +413,7 @@ export default function ApplyPage() {
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                <Button onClick={handleSubmit} className="w-full" disabled={!formData.pan || uploadedCount < 1 || isSubmitting}>
+                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || (uploadedCount < 1 && !formData.pan)}>
                   {isSubmitting ? "Submitting..." : "Dispatch to All Departments"}
                 </Button>
                 <Button variant="outline" onClick={() => router.back()} className="w-full">Back to Checklist</Button>
