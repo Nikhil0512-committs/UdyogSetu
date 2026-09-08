@@ -229,6 +229,10 @@ export default function DocumentWalletPage() {
     setDocuments([newDoc, ...documents]);
     setUploadDocNumber("");
     setSelectedFile(null);
+    
+    // Show a toast notification for instant feedback
+    toast.success(`"${uploadDocType}" uploaded successfully and verified!`);
+    
     setUploadSuccessMessage(`"${uploadDocType}" uploaded successfully and queued for instant verification.`);
     setTimeout(() => {
       setUploadSuccessMessage(null);
