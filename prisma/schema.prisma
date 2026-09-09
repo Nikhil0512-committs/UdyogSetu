@@ -24,6 +24,7 @@ model User {
   reviews       ApplicationReview[] @relation("OfficerReviews")
   documents     Document[]
   units         BusinessUnit[]
+  inspections   Inspection[]
 }
 
 model BusinessUnit {
@@ -113,4 +114,21 @@ model Scheme {
   scale       String?
   
   createdAt   DateTime @default(now())
+}
+
+model Inspection {
+  id               String   @id @default(cuid())
+  applicantId      String
+  officerId        String?
+  department       String
+  status           String   @default("SCHEDULED") // SCHEDULED, RESCHEDULE_REQUESTED, COMPLETED
+  scheduledDate    DateTime
+  proposedDate     DateTime?
+  rescheduleReason String?
+  initiator        String?  // 'APPLICANT' or 'OFFICER'
+  
+  applicant        User     @relation(fields: [applicantId], references: [id])
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

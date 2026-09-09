@@ -15,10 +15,11 @@ import { notifyReschedule, fetchMeetingSchedule } from "@/actions/notifications"
 
 export default function OfficerInspectionsClient({ officerId }: { officerId: string }) {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [schedule, setSchedule] = useState({
+  const [schedule, setSchedule] = useState<any>({
     date: "2026-08-28",
     time: "15:00",
-    formatted: "28 Aug 2026, 03:00 PM"
+    formatted: "28 Aug 2026, 03:00 PM",
+    status: "SCHEDULED"
   });
   const [date, setDate] = useState(schedule.date);
   const [time, setTime] = useState(schedule.time);
@@ -29,32 +30,51 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
   const client = useStreamVideoClient();
 
   React.useEffect(() => {
-    fetchMeetingSchedule().then((s) => {
-      setSchedule(s);
-      setDate(s.date);
-      setTime(s.time);
+    import("@/actions/inspections").then(({ fetchInspectionSchedule }) => {
+      fetchInspectionSchedule().then((s) => {
+        setSchedule(s);
+        setDate(s.date);
+        setTime(s.time);
+      });
     });
   }, []);
 
   const handleRescheduleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const res = await notifyReschedule({
-        to: "applicant",
+      const { requestReschedule } = await import("@/actions/inspections");
+      await requestReschedule({
         newDate: date,
         newTime: time,
         reason,
-        initiator: "Officer",
+        initiator: "OFFICER",
       });
-      setSchedule(res.newSchedule);
-      toast.success("Reschedule request sent! The applicant has been notified.");
+      toast.success("Reschedule applied! The applicant has been notified.");
       setRescheduleOpen(false);
       setReason("");
+      
+      const { fetchInspectionSchedule } = await import("@/actions/inspections");
+      const s = await fetchInspectionSchedule();
+      setSchedule(s);
     } catch {
-      toast.error("Failed to send reschedule notification.");
+      toast.error("Failed to apply reschedule.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleApprove = async () => {
+    const { approveReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
+    await approveReschedule();
+    const s = await fetchInspectionSchedule();
+    setSchedule(s);
+  };
+
+  const handleReject = async () => {
+    const { rejectReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
+    await rejectReschedule();
+    const s = await fetchInspectionSchedule();
+    setSchedule(s);
   };
 
   const handleCallApplicant = async () => {
@@ -68,9 +88,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
       const callId = `inspection-${Date.now()}`;
       const call = client.call("default", callId);
 
-      // officerId comes from server session — always reliable, never empty
       const members = [{ user_id: officerId, role: "admin" }];
-      // Only add applicant if it's a different user (avoids 'duplicate members' error when testing same browser)
       if (officerId !== "app-user-1") {
         members.push({ user_id: "app-user-1", role: "user" });
       }
@@ -130,6 +148,26 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
                   </li>
                 </ul>
               </div>
+
+              {schedule.status === "RESCHEDULE_REQUESTED" && schedule.initiator === "APPLICANT" && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <p className="text-sm font-medium text-amber-800">
+                    Reschedule Request
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Applicant wants to reschedule to <strong>{schedule.proposedFormatted}</strong>.<br/>
+                    Reason: {schedule.reason || "None provided"}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={handleApprove}>
+                      Approve
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={handleReject}>
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
 

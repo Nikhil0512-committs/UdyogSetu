@@ -31,10 +31,11 @@ export default function InspectionsPage() {
   const [rescheduleOpen, setRescheduleOpen] = React.useState(false);
   const [reqOpen, setReqOpen] = React.useState(false);
   
-  const [schedule, setSchedule] = React.useState({
+  const [schedule, setSchedule] = React.useState<any>({
     date: "2026-08-28",
     time: "15:00",
-    formatted: "28 Aug 2026, 03:00 PM"
+    formatted: "28 Aug 2026, 03:00 PM",
+    status: "SCHEDULED"
   });
   const [date, setDate] = React.useState(schedule.date);
   const [time, setTime] = React.useState(schedule.time);
@@ -43,29 +44,34 @@ export default function InspectionsPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   React.useEffect(() => {
-    fetchMeetingSchedule().then((s) => {
-      setSchedule(s);
-      setDate(s.date);
-      setTime(s.time);
+    import("@/actions/inspections").then(({ fetchInspectionSchedule }) => {
+      fetchInspectionSchedule().then((s) => {
+        setSchedule(s);
+        setDate(s.date);
+        setTime(s.time);
+      });
     });
   }, []);
 
   const handleRescheduleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const res = await notifyReschedule({
-        to: "officer",
+      const { requestReschedule } = await import("@/actions/inspections");
+      await requestReschedule({
         newDate: date,
         newTime: time,
         reason,
-        initiator: "Applicant",
+        initiator: "APPLICANT",
       });
-      setSchedule(res.newSchedule);
-      toast.success("Reschedule request sent! The officer has been notified.");
+      toast.success("Reschedule request sent to officer for approval.");
       setRescheduleOpen(false);
       setReason("");
+      
+      const { fetchInspectionSchedule } = await import("@/actions/inspections");
+      const s = await fetchInspectionSchedule();
+      setSchedule(s);
     } catch (err) {
-      toast.error("Failed to send reschedule notification.");
+      toast.error("Failed to send reschedule request.");
     } finally {
       setIsSubmitting(false);
     }
@@ -228,6 +234,17 @@ export default function InspectionsPage() {
                    </li>
                  </ul>
               </div>
+
+              {schedule.status === "RESCHEDULE_REQUESTED" && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <p className="text-sm font-medium text-amber-800">
+                    Reschedule Requested
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    You requested to move this inspection to {schedule.proposedFormatted}. Waiting for officer approval.
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4">
