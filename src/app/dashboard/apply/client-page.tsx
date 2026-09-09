@@ -226,7 +226,8 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
   ];
 
   const totalDocs = universalDocs.length + checklist.length;
-  const uploadedCount = universalDocs.filter(d => uploadedDocs[d]?.uploaded).length + 
+  const universalDocsUploaded = universalDocs.filter(d => uploadedDocs[d]?.uploaded).length;
+  const uploadedCount = universalDocsUploaded + 
     checklist.filter(c => uploadedDocs[c.doc]?.uploaded).length;
 
   const riskColors: Record<string, string> = {
@@ -468,8 +469,14 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || (uploadedCount < 1 && !formData.companyName)}>
-                  {isSubmitting ? "Submitting..." : "Dispatch to All Departments"}
+                {universalDocsUploaded < 6 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+                    <p className="font-semibold">⚠ Cannot submit yet</p>
+                    <p className="mt-1">You must upload at least <strong>6 out of {universalDocs.length}</strong> universal documents before submitting. Currently uploaded: <strong>{universalDocsUploaded}</strong>.</p>
+                  </div>
+                )}
+                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || universalDocsUploaded < 6 || !formData.companyName}>
+                  {isSubmitting ? "Submitting..." : `Dispatch to All Departments (${universalDocsUploaded}/${universalDocs.length} docs ready)`}
                 </Button>
                 <Button variant="outline" onClick={() => router.back()} className="w-full">Back to Checklist</Button>
               </div>

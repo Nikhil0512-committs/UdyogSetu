@@ -13,7 +13,15 @@ import { useRouter } from "next/navigation";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import { notifyReschedule, fetchMeetingSchedule } from "@/actions/notifications";
 
-export default function OfficerInspectionsClient({ officerId }: { officerId: string }) {
+interface EligibleApp {
+  id: string;
+  companyName: string;
+  applicantName: string;
+  riskCategory: string;
+  riskScore: number;
+}
+
+export default function OfficerInspectionsClient({ officerId, department, eligibleApps, canVideoCall }: { officerId: string; department: string; eligibleApps: EligibleApp[]; canVideoCall: boolean }) {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [schedule, setSchedule] = useState<any>({
     date: "2026-08-28",
@@ -207,16 +215,79 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
               </DialogContent>
             </Dialog>
 
-            {/* Call Button */}
-            <Button
-              onClick={handleCallApplicant}
-              disabled={isCalling || !client}
-              className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white flex gap-2 justify-center"
-            >
-              <Video className="h-4 w-4" />
-              {isCalling ? "Connecting..." : !client ? "Initializing..." : "Call Applicant"}
-            </Button>
+            {/* Call Button - Only available for Red/Orange category applications */}
+            {canVideoCall ? (
+              <Button
+                onClick={handleCallApplicant}
+                disabled={isCalling || !client}
+                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white flex gap-2 justify-center"
+              >
+                <Video className="h-4 w-4" />
+                {isCalling ? "Connecting..." : !client ? "Initializing..." : "Call Applicant"}
+              </Button>
+            ) : (
+              <div className="w-full sm:flex-1">
+                <Button
+                  disabled
+                  className="w-full bg-slate-200 text-slate-500 cursor-not-allowed flex gap-2 justify-center"
+                >
+                  <Video className="h-4 w-4" />
+                  Video Call Not Required
+                </Button>
+                <p className="text-xs text-slate-500 mt-1 text-center">
+                  Video verification is only required for Red & Orange category applications. All current applications in your queue are Green (self-certification).
+                </p>
+              </div>
+            )}
           </CardFooter>
+        </Card>
+
+        {/* Applications Queue with Risk Categories */}
+        <Card className="flex flex-col h-full">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2 text-slate-900">
+              <User className="h-5 w-5 text-indigo-600" />
+              Applications in {department || "Your"} Queue
+            </CardTitle>
+            <CardDescription>Applications assigned to your department with their risk categories</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 flex-grow">
+            {eligibleApps.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <p className="font-medium">No applications in your queue</p>
+                <p className="text-sm mt-1">When applicants submit applications routed to your department, they will appear here.</p>
+              </div>
+            ) : (
+              eligibleApps.map(app => {
+                const riskColors: Record<string, string> = {
+                  Red: "bg-red-100 text-red-800 border-red-200",
+                  Orange: "bg-orange-100 text-orange-800 border-orange-200",
+                  Green: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                };
+                const needsVideo = app.riskCategory === "Red" || app.riskCategory === "Orange";
+                return (
+                  <div key={app.id} className={`p-3 rounded-lg border ${needsVideo ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm">{app.companyName}</p>
+                        <p className="text-xs text-slate-600">Applicant: {app.applicantName} • {app.id}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${riskColors[app.riskCategory] || riskColors.Green}`}>
+                          {app.riskCategory}
+                        </span>
+                        {needsVideo ? (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[10px]">Video Required</Badge>
+                        ) : (
+                          <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-[10px]">Self-Cert</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>
