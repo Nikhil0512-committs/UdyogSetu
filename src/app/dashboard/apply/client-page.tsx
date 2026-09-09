@@ -32,8 +32,8 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
   const [ocrFileName, setOcrFileName] = useState("");
   const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST);
   const [riskCategory, setRiskCategory] = useState("Green");
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean }>>(() => {
-    const initial: Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean }> = {};
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean; fileBase64?: string }>>(() => {
+    const initial: Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean; fileBase64?: string }> = {};
     if (walletDocs && walletDocs.length > 0) {
       walletDocs.forEach(doc => {
         // Map wallet types to apply types
@@ -45,9 +45,9 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
         else if (doc.type === "Site Layout Plan") mappedType = "Site Layout Plan / Building Plan Drawing";
         else if (doc.type === "Aadhaar") mappedType = "Aadhaar of Authorized Signatory";
         
-        initial[mappedType] = { uploaded: true, fileName: doc.fileName, fromWallet: true };
+        initial[mappedType] = { uploaded: true, fileName: doc.fileName, fromWallet: true, fileBase64: doc.fileBase64 };
         // Also keep original type just in case it's used for approval docs
-        initial[doc.type] = { uploaded: true, fileName: doc.fileName, fromWallet: true };
+        initial[doc.type] = { uploaded: true, fileName: doc.fileName, fromWallet: true, fileBase64: doc.fileBase64 };
       });
     }
     return initial;
@@ -126,7 +126,7 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
 
           setUploadedDocs(prev => ({
             ...prev,
-            [docKey]: { uploaded: true, fileName: file.name }
+            [docKey]: { uploaded: true, fileName: file.name, fileBase64: fileBase64 }
           }));
 
           toast.success(`AI OCR Verified: ${docKey}`);

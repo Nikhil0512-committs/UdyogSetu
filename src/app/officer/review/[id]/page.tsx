@@ -35,15 +35,22 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
       address: "MIDC",
       riskCategory: dbApp.riskScore && dbApp.riskScore >= 80 ? "Red" : dbApp.riskScore && dbApp.riskScore >= 50 ? "Orange" : "Green",
       submittedAt: dbApp.submittedAt ? dbApp.submittedAt.toISOString() : new Date().toISOString(),
-      documents: dbApp.documents.map(d => ({
-        id: d.id,
-        name: d.type,
-        fileName: d.url, // url holds filename/base64
-        fileSize: "Unknown",
-        uploadedAt: d.createdAt.toISOString(),
-        verified: d.isVerified,
-        ocrExtracted: d.ocrData ? JSON.parse(d.ocrData) : null
-      })),
+      documents: dbApp.documents.map(d => {
+        let parsed = null;
+        if (d.ocrData) {
+          try { parsed = JSON.parse(d.ocrData); } catch(e) {}
+        }
+        return {
+          id: d.id,
+          name: d.type,
+          fileName: parsed?.fileName || (d.url.length > 100 ? "Document File" : d.url),
+          fileBase64: d.url.startsWith("data:") ? d.url : null,
+          fileSize: "Unknown",
+          uploadedAt: d.createdAt.toISOString(),
+          verified: d.isVerified,
+          ocrExtracted: parsed
+        };
+      }),
       approvals: dbApp.approvals.map(a => ({
         id: a.id,
         dept: a.department,

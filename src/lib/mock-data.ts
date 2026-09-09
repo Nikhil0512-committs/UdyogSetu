@@ -5,6 +5,7 @@ export interface SubmittedDoc {
   id: string;
   name: string;       // e.g. "PAN card (Company/Proprietor)"
   fileName: string;   // e.g. "pan_card.pdf"
+  fileBase64?: string; // base64 string
   fileSize: string;
   uploadedAt: string;  // ISO date string
   ocrExtracted: Record<string, string> | null;

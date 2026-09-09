@@ -66,13 +66,24 @@ export default function DocumentList({ documents, appId }: { documents: Submitte
             </DialogDescription>
           </DialogHeader>
           
-          <div className="bg-slate-100 rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px] border border-slate-200">
-            <FileText className="w-16 h-16 text-slate-300 mb-4" />
-            <p className="text-slate-500 font-medium">Document Preview</p>
-            <p className="text-slate-400 text-sm mt-2 max-w-sm text-center">
-              (This is a secure mock preview of the actual document file uploaded by the applicant).
-            </p>
-          </div>
+          {selectedDoc?.fileBase64 ? (
+            <div className="rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center" style={{ minHeight: '500px' }}>
+              {selectedDoc.fileBase64.startsWith("data:image/") ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selectedDoc.fileBase64} alt="Document Preview" className="max-w-full max-h-[600px] object-contain" />
+              ) : (
+                <iframe src={selectedDoc.fileBase64} className="w-full min-h-[600px]" title="Document Preview" />
+              )}
+            </div>
+          ) : (
+            <div className="bg-slate-100 rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px] border border-slate-200">
+              <FileText className="w-16 h-16 text-slate-300 mb-4" />
+              <p className="text-slate-500 font-medium">Document Preview</p>
+              <p className="text-slate-400 text-sm mt-2 max-w-sm text-center">
+                (This is a secure mock preview. The actual document was not uploaded as a valid file format.)
+              </p>
+            </div>
+          )}
           
           <div className="mt-4 p-4 rounded-lg border bg-slate-50 border-slate-200">
             <h4 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">

@@ -45,8 +45,6 @@ export async function POST(request: Request) {
       }
     });
 
-    // We also need to link or create the documents for this application.
-    // Assuming uploadedDocs is an object with { [docName]: { fileName, uploaded, fromWallet } }
     for (const [docName, info] of Object.entries(uploadedDocs)) {
       const typedInfo = info as any;
       if (typedInfo.uploaded) {
@@ -55,9 +53,9 @@ export async function POST(request: Request) {
             userId: uid,
             applicationId: newAppId,
             type: docName,
-            url: typedInfo.fileName, // Store filename or base64 URL here
+            url: typedInfo.fileBase64 || typedInfo.fileName, // Use base64 if available
             isVerified: true,
-            ocrData: JSON.stringify(formData)
+            ocrData: JSON.stringify({ ...formData, fileName: typedInfo.fileName })
           }
         });
       }
