@@ -4,21 +4,64 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, HelpCircle, FileText, Calendar, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { getApplicationById } from "@/lib/mock-data";
 import ReviewActions from "./review-actions";
 import DocumentList from "./document-list";
+import { prisma } from "@/lib/db";
 
 export default async function ReviewPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ approval?: string }> }) {
   const session = await getSession();
   const { id } = await params;
-  const app = getApplicationById(id);
+  
+  const dbApp = await prisma.application.findUnique({
+    where: { id },
+    include: {
+      applicant: true,
+      approvals: true,
+      documents: true,
+      reviews: true
+    }
+  });
+
+  let app: any = null;
+  if (dbApp) {
+    app = {
+      id: dbApp.id,
+      applicantName: dbApp.applicant?.name || "Unknown Applicant",
+      companyName: dbApp.applicant?.companyName || "Unknown Company",
+      pan: dbApp.applicant?.panNumber || "N/A",
+      gstin: "N/A", // We didn't store gstin directly on user, but it might be in docs
+      sector: "Manufacturing",
+      district: "Pune",
+      address: "MIDC",
+      riskCategory: dbApp.riskScore && dbApp.riskScore >= 80 ? "Red" : dbApp.riskScore && dbApp.riskScore >= 50 ? "Orange" : "Green",
+      submittedAt: dbApp.submittedAt ? dbApp.submittedAt.toISOString() : new Date().toISOString(),
+      documents: dbApp.documents.map(d => ({
+        id: d.id,
+        name: d.type,
+        fileName: d.url, // url holds filename/base64
+        fileSize: "Unknown",
+        uploadedAt: d.createdAt.toISOString(),
+        verified: d.isVerified,
+        ocrExtracted: d.ocrData ? JSON.parse(d.ocrData) : null
+      })),
+      approvals: dbApp.approvals.map(a => ({
+        id: a.id,
+        dept: a.department,
+        name: a.approvalName,
+        doc: "Required Document",
+        status: a.status,
+        reviewedAt: null, // to be populated if needed
+        officerComment: ""
+      }))
+    };
+  }
   
   if (!app) {
     return <div className="text-center py-20 text-slate-500">Application not found.</div>;
   }
 
   const dept = session?.department || "";
-  const myApprovals = app.approvals.filter(a => a.dept === dept || !dept);
+  const myApprovals = app.approvals.filter((a: any) => a.dept === dept || !dept);
 
   const riskColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800 border-red-200",
@@ -105,7 +148,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
         {/* RIGHT: Decision & Audit */}
         <div className="space-y-6">
           {/* Approvals for this department */}
-          {myApprovals.map(approval => (
+          {myApprovals.map((approval: any) => (
             <Card key={approval.id} className="shadow-md border-blue-200">
               <CardHeader className="bg-blue-50 border-b border-blue-100">
                 <CardTitle className="text-sm text-slate-900">{approval.name}</CardTitle>
@@ -126,11 +169,11 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
             </CardHeader>
             <CardContent>
               <div className="text-sm text-slate-700 space-y-3">
-                {app.approvals.filter(a => a.reviewedAt).map(a => (
+                {app.approvals.filter((a: any) => a.reviewedAt).map((a: any) => (
                   <p key={a.id}>• <span className="font-semibold">{a.dept}</span>: {a.status} — {new Date(a.reviewedAt!).toLocaleString("en-IN")} {a.officerComment && <span className="text-slate-600 italic">&ldquo;{a.officerComment}&rdquo;</span>}</p>
                 ))}
                 <p>• <span className="font-semibold">System</span>: Auto-routed to {app.approvals.length} departments — {new Date(app.submittedAt).toLocaleString("en-IN")}</p>
-                <p>• <span className="font-semibold">AI Engine</span>: {app.documents.filter(d => d.verified).length}/{app.documents.length} docs pre-verified</p>
+                <p>• <span className="font-semibold">AI Engine</span>: {app.documents.filter((d: any) => d.verified).length}/{app.documents.length} docs pre-verified</p>
                 <p>• <span className="font-semibold">Applicant</span>: Submitted — {new Date(app.submittedAt).toLocaleString("en-IN")}</p>
               </div>
             </CardContent>

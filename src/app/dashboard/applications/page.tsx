@@ -1,13 +1,30 @@
 import { requireAuth } from "@/lib/auth";
-import { getAllApplications } from "@/lib/mock-data";
 import ApplicationsClient from "./client";
+import { prisma } from "@/lib/db";
 
 export default async function ApplicationsPage() {
   const session = await requireAuth("APPLICANT");
   
-  // Fetch real applications from the mock database, filtering by this applicant
-  const allApps = getAllApplications();
-  const applications = allApps.filter(app => app.applicantName === session.name);
+  // Fetch real applications from DB for this user
+  const dbApps = await prisma.application.findMany({
+    where: { applicantId: session.userId },
+    include: {
+      approvals: true
+    },
+    orderBy: { submittedAt: 'desc' }
+  });
+
+  const applications = dbApps.map(app => ({
+    id: app.id,
+    applicantName: session.name,
+    sector: "Manufacturing", // Default sector
+    status: app.status,
+    submittedAt: app.submittedAt ? app.submittedAt.toISOString() : new Date().toISOString(),
+    approvals: app.approvals.map(a => ({
+      status: a.status,
+      officerComment: "" // Can fetch from reviews if needed
+    }))
+  }));
 
   // Map the backend model to the frontend display model
   const mappedApplications = applications.map(app => {

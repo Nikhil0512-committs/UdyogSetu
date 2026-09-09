@@ -1,57 +1,72 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { checklist, riskCategory, formData, uploadedDocs } = body;
-  
-  const session = await getSession();
-  
-  const globalAny = global as any;
-  if (!globalAny.mockApplications) {
-    globalAny.mockApplications = [];
+  try {
+    const body = await request.json();
+    const { checklist, riskCategory, formData, uploadedDocs } = body;
+    
+    const session = await getSession();
+    const uid = session?.userId || "app-user-1";
+    const newAppId = `APP-${new Date().getFullYear()}-${Math.floor(Math.random() * 90000) + 10000}`;
+
+    // Ensure user exists
+    await prisma.user.upsert({
+      where: { id: uid },
+      update: {
+        companyName: formData.companyName,
+        panNumber: formData.pan
+      },
+      create: {
+        id: uid,
+        name: session?.name || "Applicant",
+        email: `${uid}@example.com`,
+        role: "APPLICANT",
+        companyName: formData.companyName,
+        panNumber: formData.pan
+      }
+    });
+
+    const newApp = await prisma.application.create({
+      data: {
+        id: newAppId,
+        applicantId: uid,
+        status: "IN_REVIEW",
+        riskScore: riskCategory === "Red" ? 90 : riskCategory === "Orange" ? 60 : 30,
+        submittedAt: new Date(),
+        approvals: {
+          create: checklist.map((item: any) => ({
+            department: item.dept,
+            approvalName: item.name,
+            status: "PENDING"
+          }))
+        }
+      }
+    });
+
+    // We also need to link or create the documents for this application.
+    // Assuming uploadedDocs is an object with { [docName]: { fileName, uploaded, fromWallet } }
+    for (const [docName, info] of Object.entries(uploadedDocs)) {
+      const typedInfo = info as any;
+      if (typedInfo.uploaded) {
+        await prisma.document.create({
+          data: {
+            userId: uid,
+            applicationId: newAppId,
+            type: docName,
+            url: typedInfo.fileName, // Store filename or base64 URL here
+            isVerified: true,
+            ocrData: JSON.stringify(formData)
+          }
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, appId: newAppId });
+  } catch (err) {
+    console.error("Application submission failed:", err);
+    return NextResponse.json({ success: false, error: "Failed to submit" }, { status: 500 });
   }
-
-  const newAppId = `APP-2026-${Math.floor(Math.random() * 9000) + 1000}`;
-  
-  // Format the uploaded docs
-  const formattedDocs = Object.keys(uploadedDocs).map((docName, index) => ({
-    id: `doc-${index}`,
-    name: docName,
-    fileName: uploadedDocs[docName].fileName,
-    fileSize: "2.4 MB",
-    uploadedAt: new Date().toISOString(),
-    ocrExtracted: docName.includes("PAN") ? { "PAN Number": formData.pan, "Name": formData.companyName } : null,
-    verified: true,
-  }));
-  
-  // Format the approvals from the checklist
-  const formattedApprovals = checklist.map((item: any) => ({
-    id: item.id,
-    dept: item.dept,
-    name: item.name,
-    doc: item.doc,
-    status: "PENDING",
-  }));
-
-  const newApp = {
-    id: newAppId,
-    applicantName: session?.name || "Applicant",
-    companyName: formData.companyName || "Acme Industries",
-    pan: formData.pan || "ABCDE1234F",
-    gstin: formData.gstin || "27ABCDE1234F1Z5",
-    address: formData.address || "MIDC",
-    sector: "Manufacturing", // mock
-    scale: "Medium",
-    district: "Pune",
-    riskCategory: riskCategory || "Orange",
-    submittedAt: new Date().toISOString(),
-    status: "IN_REVIEW",
-    documents: formattedDocs,
-    approvals: formattedApprovals
-  };
-
-  globalAny.mockApplications.push(newApp);
-
-  return NextResponse.json({ success: true, appId: newAppId });
 }
+

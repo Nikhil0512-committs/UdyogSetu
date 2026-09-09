@@ -3,11 +3,52 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, MapPin, AlertTriangle, Building, FileText, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getApplicationById } from "@/lib/mock-data";
+import { prisma } from "@/lib/db";
 
 export default async function TrackingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const app = getApplicationById(id);
+  
+  const dbApp = await prisma.application.findUnique({
+    where: { id },
+    include: {
+      applicant: true,
+      approvals: true,
+      documents: true
+    }
+  });
+
+  let app: any = null;
+  if (dbApp) {
+    app = {
+      id: dbApp.id,
+      applicantName: dbApp.applicant?.name || "Unknown Applicant",
+      companyName: dbApp.applicant?.companyName || "Unknown Company",
+      pan: dbApp.applicant?.panNumber || "N/A",
+      gstin: "N/A", 
+      sector: "Manufacturing",
+      district: "Pune",
+      address: "MIDC",
+      riskCategory: dbApp.riskScore && dbApp.riskScore >= 80 ? "Red" : dbApp.riskScore && dbApp.riskScore >= 50 ? "Orange" : "Green",
+      submittedAt: dbApp.submittedAt ? dbApp.submittedAt.toISOString() : new Date().toISOString(),
+      status: dbApp.status,
+      documents: dbApp.documents.map(d => ({
+        id: d.id,
+        name: d.type,
+        fileName: d.url,
+        fileSize: "Unknown",
+        uploadedAt: d.createdAt.toISOString(),
+        verified: d.isVerified,
+        ocrExtracted: d.ocrData ? JSON.parse(d.ocrData) : null
+      })),
+      approvals: dbApp.approvals.map(a => ({
+        id: a.id,
+        dept: a.department,
+        name: a.approvalName,
+        status: a.status,
+        officerComment: "" // Currently no direct officerComment field on ApprovalRequirement, but it's okay for tracking view
+      }))
+    };
+  }
 
   if (!app) {
     return (
@@ -19,8 +60,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  // Calculate dynamic steps
-  const isDocVerified = app.documents.every(d => d.verified);
+  const isDocVerified = app.documents.every((d: any) => d.verified);
   const isApproved = app.status === "APPROVED";
   const isRejected = app.status === "REJECTED";
   const isQueried = app.status === "QUERIED";
@@ -35,7 +75,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
   const statusBadge = getOverallStatus();
 
   // Find the bottleneck
-  const pendingApprovals = app.approvals.filter(a => a.status === "PENDING" || a.status === "QUERIED");
+  const pendingApprovals = app.approvals.filter((a: any) => a.status === "PENDING" || a.status === "QUERIED");
   const bottleneckDept = pendingApprovals.length > 0 ? pendingApprovals[0].dept : "None";
 
   // Simulate ETA
@@ -158,7 +198,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
             <CardDescription>Real-time status of each parallel approval</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {app.approvals.map((approval) => (
+            {app.approvals.map((approval: any) => (
               <div key={approval.id} className="p-4 rounded-lg border border-slate-200 bg-slate-50">
                 <div className="flex items-start justify-between">
                   <div>

@@ -4,14 +4,38 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, Clock, ShieldAlert, CheckCircle2, FileText, Search } from "lucide-react";
 import { getSession } from "@/lib/auth";
-import { getApplicationsForDepartment, getAllApplications } from "@/lib/mock-data";
 import { Input } from "@/components/ui/input";
+import { prisma } from "@/lib/db";
 
 export default async function OfficerDashboard() {
   const session = await getSession();
   const dept = session?.department || "";
 
-  const apps = dept ? getApplicationsForDepartment(dept) : getAllApplications();
+  // Fetch applications that have an approval requirement for this department
+  const dbApps = await prisma.application.findMany({
+    where: dept ? { approvals: { some: { department: dept } } } : undefined,
+    include: {
+      applicant: true,
+      approvals: true,
+      documents: true
+    },
+    orderBy: { submittedAt: 'desc' }
+  });
+
+  const apps = dbApps.map(app => ({
+    id: app.id,
+    applicantName: app.applicant?.name || "Unknown Applicant",
+    companyName: app.applicant?.companyName || "Unknown Company",
+    riskCategory: app.riskScore && app.riskScore >= 80 ? "Red" : app.riskScore && app.riskScore >= 50 ? "Orange" : "Green",
+    submittedAt: app.submittedAt ? app.submittedAt.toISOString() : new Date().toISOString(),
+    documents: app.documents,
+    approvals: app.approvals.map(a => ({
+      id: a.id,
+      dept: a.department,
+      name: a.approvalName,
+      status: a.status
+    }))
+  }));
 
   const riskColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800",
