@@ -30,6 +30,8 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
   const docFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploading, setUploading] = useState(false);
   const [ocrFileName, setOcrFileName] = useState("");
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; fileName: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST);
   const [riskCategory, setRiskCategory] = useState("Green");
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean; fileBase64?: string }>>(() => {
@@ -84,10 +86,7 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
     if (risk) setRiskCategory(risk);
   }, []);
 
-  const processFileWithAI = async (file: File, targetDocName?: string) => {
-    setUploading(true);
-    setOcrFileName(file.name);
-
+  const processSingleFile = (file: File, targetDocName?: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       const reader = new FileReader();
       reader.onload = async () => {
@@ -107,8 +106,7 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
           const data = await res.json();
 
           if (!data.success || data.isIrrelevant) {
-            toast.error(data.error || "Unrecognized or irrelevant file. Please upload a valid business document.");
-            setUploading(false);
+            toast.error(data.error || `Unrecognized or irrelevant file: ${file.name}`);
             resolve();
             return;
           }
@@ -116,12 +114,12 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
           const docKey = targetDocName || data.documentType || "Certificate of Incorporation / Udyam";
           
           if (data.extractedData) {
-            setFormData({
-              pan: data.extractedData.pan,
-              companyName: data.extractedData.companyName,
-              address: data.extractedData.address,
-              gstin: data.extractedData.gstin
-            });
+            setFormData(prev => ({
+              pan: data.extractedData.pan || prev.pan,
+              companyName: data.extractedData.companyName || prev.companyName,
+              address: data.extractedData.address || prev.address,
+              gstin: data.extractedData.gstin || prev.gstin
+            }));
           }
 
           setUploadedDocs(prev => ({
@@ -129,12 +127,11 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
             [docKey]: { uploaded: true, fileName: file.name, fileBase64: fileBase64 }
           }));
 
-          toast.success(`AI OCR Verified: ${docKey}`);
+          toast.success(`AI Classified: ${docKey}`);
         } catch (err) {
           console.error("OCR Client Error:", err);
-          toast.error("Failed to analyze document. Please upload a valid business document.");
+          toast.error(`Failed to analyze document: ${file.name}`);
         } finally {
-          setUploading(false);
           resolve();
         }
       };
@@ -142,16 +139,54 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
     });
   };
 
+  const processBatchWithAI = async (files: File[]) => {
+    if (files.length === 0) return;
+    setUploading(true);
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setBatchProgress({ current: i + 1, total: files.length, fileName: file.name });
+      setOcrFileName(file.name);
+      await processSingleFile(file);
+    }
+
+    setUploading(false);
+    setBatchProgress(null);
+    if (files.length > 1) {
+      toast.success(`Batch complete! Successfully classified ${files.length} documents.`);
+    }
+  };
+
   const handleOcrFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFileWithAI(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    processBatchWithAI(Array.from(files));
+    // Reset input so the same files can be selected again if needed
+    if (ocrFileRef.current) ocrFileRef.current.value = "";
   };
 
   const handleDocFileSelected = (docName: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    processFileWithAI(file, docName);
+    processSingleFile(file, docName);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+    processBatchWithAI(Array.from(files));
   };
 
   const handleAutoFillAllDemo = () => {
@@ -275,28 +310,44 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleOcrFileSelected}
                 className="hidden"
+                multiple
               />
               <div 
-                className="border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-blue-50 transition cursor-pointer"
-                onClick={() => ocrFileRef.current?.click()}
+                className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center transition cursor-pointer
+                  ${isDragging ? 'border-emerald-400 bg-emerald-50' : 'border-blue-200 bg-blue-50/50 hover:bg-blue-50'}`}
+                onClick={() => !uploading && ocrFileRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
                 {uploading ? (
-                  <div className="animate-pulse flex flex-col items-center">
-                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-2" />
-                    <span className="text-sm text-slate-800 font-semibold">Analyzing &quot;{ocrFileName}&quot; via Gemini Vision...</span>
-                    <span className="text-xs text-slate-600 mt-1">Classifying document and extracting MAITRI business details</span>
+                  <div className="flex flex-col items-center w-full">
+                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
+                    {batchProgress ? (
+                      <>
+                        <span className="text-sm text-slate-800 font-semibold mb-2">
+                          Processing {batchProgress.current} of {batchProgress.total}...
+                        </span>
+                        <div className="w-full max-w-xs bg-slate-200 rounded-full h-2 mb-2">
+                          <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}></div>
+                        </div>
+                        <span className="text-xs text-slate-600">Analyzing &quot;{batchProgress.fileName}&quot;</span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-slate-800 font-semibold">Analyzing...</span>
+                    )}
                   </div>
-                ) : formData.companyName ? (
+                ) : formData.companyName && uploadedCount > 0 ? (
                   <div className="flex flex-col items-center">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mb-2" />
-                    <span className="text-sm text-emerald-800 font-semibold">Processed &quot;{ocrFileName || "document_verified.pdf"}&quot;</span>
-                    <span className="text-xs text-slate-600 mt-1">Click to upload another document</span>
+                    <span className="text-sm text-emerald-800 font-semibold">Processed {uploadedCount} document(s)</span>
+                    <span className="text-xs text-slate-600 mt-1">Drag & Drop or click to upload more documents</span>
                   </div>
                 ) : (
                   <>
-                    <UploadCloud className="w-10 h-10 text-blue-600 mb-2" />
-                    <span className="text-sm font-semibold text-slate-800">Click to Browse & Upload File</span>
-                    <span className="text-xs text-slate-600 mt-1">PDF, JPG, PNG — Gemini Vision AI will classify and extract data</span>
+                    <UploadCloud className={`w-10 h-10 mb-2 ${isDragging ? 'text-emerald-500 scale-110 transition-transform' : 'text-blue-600'}`} />
+                    <span className="text-sm font-semibold text-slate-800">Drag & Drop All Documents Here</span>
+                    <span className="text-xs text-slate-600 mt-1">Select multiple files (PDF, JPG, PNG). The AI will auto-classify and sort them.</span>
                   </>
                 )}
               </div>
