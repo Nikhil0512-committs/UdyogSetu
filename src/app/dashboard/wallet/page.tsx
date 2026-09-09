@@ -7,5 +7,5 @@ export default async function DocumentWalletPage() {
   // Check if the current user is the dummy account used for testing
   const isDummyAccount = session.userId === "admin@company.com" || session.userId === "admin@acme.com";
 
-  return <DocumentWalletClientPage isDummyAccount={isDummyAccount} />;
+  return <DocumentWalletClientPage isDummyAccount={isDummyAccount} userId={session.userId} />;
 }

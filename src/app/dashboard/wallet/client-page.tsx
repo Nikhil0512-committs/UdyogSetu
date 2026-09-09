@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ interface WalletDocument {
   issuer: string;
   verifiedBy: string;
   linkedApplications: string[];
+  fileBase64?: string;
 }
 
 const INITIAL_DOCUMENTS: WalletDocument[] = [
@@ -143,7 +144,7 @@ const DOCUMENT_TYPES = [
   "Bank Solvency Certificate"
 ];
 
-export default function DocumentWalletClientPage({ isDummyAccount }: { isDummyAccount: boolean }) {
+export default function DocumentWalletClientPage({ isDummyAccount, userId }: { isDummyAccount: boolean, userId: string }) {
   const [documents, setDocuments] = useState<WalletDocument[]>(isDummyAccount ? INITIAL_DOCUMENTS : []);
   const [selectedDoc, setSelectedDoc] = useState<WalletDocument | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -154,6 +155,21 @@ export default function DocumentWalletClientPage({ isDummyAccount }: { isDummyAc
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Fetch persisted documents
+  useEffect(() => {
+    import("@/actions/wallet").then(({ fetchWalletDocuments }) => {
+      fetchWalletDocuments(userId).then((persistedDocs: any) => {
+        if (persistedDocs && persistedDocs.length > 0) {
+          setDocuments(prev => {
+            const existingIds = new Set(prev.map(d => d.id));
+            const newDocs = persistedDocs.filter((d: any) => !existingIds.has(d.id));
+            return [...newDocs, ...prev];
+          });
+        }
+      });
+    });
+  }, [userId]);
 
   // Summary counts
   const totalCount = documents.length;
@@ -219,8 +235,15 @@ export default function DocumentWalletClientPage({ isDummyAccount }: { isDummyAc
           status: "VERIFIED",
           issuer: "Verified via AI OCR",
           verifiedBy: "Automated OCR API",
-          linkedApplications: []
+          linkedApplications: [],
+          fileBase64,
         };
+
+        const { saveWalletDocument } = await import("@/actions/wallet");
+        const saveRes = await saveWalletDocument(userId, newDoc);
+        if (saveRes.id) {
+          newDoc.id = saveRes.id;
+        }
 
         setDocuments([newDoc, ...documents]);
         setUploadDocNumber("");
@@ -874,6 +897,17 @@ export default function DocumentWalletClientPage({ isDummyAccount }: { isDummyAc
                   )}
                 </div>
               </div>
+
+              {/* Actual Document Viewer */}
+              {selectedDoc.fileBase64 && (
+                <div className="mt-4 border border-slate-300 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center min-h-[300px]">
+                  {selectedDoc.fileName.toLowerCase().endsWith('.pdf') || selectedDoc.fileBase64.startsWith('data:application/pdf') ? (
+                    <iframe src={selectedDoc.fileBase64} className="w-full h-[500px] border-0" title="Document Preview" />
+                  ) : (
+                    <img src={selectedDoc.fileBase64} alt={selectedDoc.fileName} className="max-w-full max-h-[500px] object-contain" />
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Modal Footer Actions */}
