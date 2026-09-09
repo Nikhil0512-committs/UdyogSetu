@@ -36,6 +36,17 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
     const initial: Record<string, { uploaded: boolean; fileName: string; fromWallet?: boolean }> = {};
     if (walletDocs && walletDocs.length > 0) {
       walletDocs.forEach(doc => {
+        // Map wallet types to apply types
+        let mappedType = doc.type;
+        if (doc.type === "PAN Card" || doc.type === "PAN") mappedType = "PAN card (Company/Proprietor)";
+        else if (doc.type === "Certificate of Incorporation") mappedType = "Certificate of Incorporation / Udyam";
+        else if (doc.type === "GST Certificate") mappedType = "GST Registration Certificate";
+        else if (doc.type === "Land Allotment Letter") mappedType = "Land Ownership / Lease Allotment";
+        else if (doc.type === "Site Layout Plan") mappedType = "Site Layout Plan / Building Plan Drawing";
+        else if (doc.type === "Aadhaar") mappedType = "Aadhaar of Authorized Signatory";
+        
+        initial[mappedType] = { uploaded: true, fileName: doc.fileName, fromWallet: true };
+        // Also keep original type just in case it's used for approval docs
         initial[doc.type] = { uploaded: true, fileName: doc.fileName, fromWallet: true };
       });
     }
@@ -45,10 +56,10 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
     let pan = "";
     let gstin = "";
     if (walletDocs && walletDocs.length > 0) {
-      const panDoc = walletDocs.find(d => d.type === "PAN card (Company/Proprietor)" || d.type === "PAN");
+      const panDoc = walletDocs.find(d => d.type === "PAN Card" || d.type === "PAN card (Company/Proprietor)" || d.type === "PAN");
       if (panDoc && panDoc.docNumber && panDoc.docNumber !== "N/A") pan = panDoc.docNumber;
 
-      const gstDoc = walletDocs.find(d => d.type === "GST Registration Certificate" || d.type === "GST");
+      const gstDoc = walletDocs.find(d => d.type === "GST Certificate" || d.type === "GST Registration Certificate" || d.type === "GST");
       if (gstDoc && gstDoc.docNumber && gstDoc.docNumber !== "N/A") gstin = gstDoc.docNumber;
     }
     return {

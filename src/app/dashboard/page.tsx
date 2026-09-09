@@ -5,14 +5,19 @@ import Link from "next/link";
 import { FileText, Clock, CheckCircle2, AlertCircle, ArrowRight, Plus } from "lucide-react";
 
 import { requireAuth } from "@/lib/auth";
-import { getAllApplications } from "@/lib/mock-data";
+import { prisma } from "@/lib/db";
 
 export default async function DashboardPage() {
   const session = await requireAuth("APPLICANT");
   
-  // Fetch real applications from the mock database, filtering by this applicant
-  const allApps = getAllApplications();
-  const applications = allApps.filter(app => app.applicantName === session.name);
+  const applications = await prisma.application.findMany({
+    where: { applicantId: session.userId },
+    include: {
+      approvals: true,
+      unit: true
+    },
+    orderBy: { submittedAt: 'desc' }
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -129,12 +134,12 @@ export default async function DashboardPage() {
                         {app.status.replace("_", " ")}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-slate-900 text-lg">Universal Application - {app.sector}</h3>
+                    <h3 className="font-semibold text-slate-900 text-lg">Universal Application - {app.unit?.sector || "Manufacturing"}</h3>
                     <p className="text-sm text-slate-600 mt-0.5">Departments: <span className="font-medium text-slate-700">{app.approvals.length} Approvals Required</span></p>
                   </div>
                   <div className="text-left md:text-right">
                     <p className="text-sm text-slate-600 mb-1">Submission Date</p>
-                    <p className="font-semibold text-slate-900">{new Date(app.submittedAt).toLocaleDateString()}</p>
+                    <p className="font-semibold text-slate-900">{new Date(app.submittedAt || app.createdAt).toLocaleDateString()}</p>
                     <Link href={`/dashboard/track/${app.id}`} className="text-blue-600 text-sm font-semibold hover:underline mt-2 inline-flex items-center gap-1">
                       Track Application <ArrowRight className="w-3 h-3" />
                     </Link>
