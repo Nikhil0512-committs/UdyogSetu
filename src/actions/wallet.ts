@@ -11,8 +11,23 @@ export async function fetchWalletDocuments(userId: string) {
     });
 
     if (docs.length > 0) {
-      return docs.map(doc => {
-        let meta: any = {};
+      return docs
+        .filter(doc => {
+          // Dummy documents or old broken documents do not have a base64 data URI.
+          // Only show manually uploaded verified documents with real file data.
+          if (!doc.url || !doc.url.startsWith('data:')) {
+            return false;
+          }
+          if (!doc.ocrData) return true;
+          try {
+            const meta = JSON.parse(doc.ocrData);
+            return meta.isDummy !== true;
+          } catch (e) {
+            return true;
+          }
+        })
+        .map(doc => {
+          let meta: any = {};
         try {
           if (doc.ocrData) meta = JSON.parse(doc.ocrData);
         } catch (e) {}

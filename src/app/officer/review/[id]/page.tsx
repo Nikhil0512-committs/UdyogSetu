@@ -70,6 +70,21 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
   const dept = session?.department || "";
   const myApprovals = app.approvals.filter((a: any) => a.dept === dept || !dept);
 
+  // Department specific document mapping
+  const identityDocs = ["PAN card (Company/Proprietor)", "Aadhaar of Authorized Signatory", "Certificate of Incorporation / Udyam", "GST Registration Certificate"];
+  
+  const deptSpecificMap: Record<string, string[]> = {
+    "Pollution Control Board (MPCB)": ["Consent to Establish (Water & Air)", "Project Report / Manufacturing Process Details", "Site Layout Plan / Building Plan Drawing", "Land Ownership / Lease Allotment"],
+    "Fire Department": ["Provisional Fire NOC", "Site Layout Plan / Building Plan Drawing"],
+    "Labour Department": ["Shops & Establishment Registration"],
+    "Department of Industries": ["Project Report / Manufacturing Process Details", "Land Ownership / Lease Allotment"]
+  };
+
+  const allowedDocTypes = dept ? [...identityDocs, ...(deptSpecificMap[dept] || [])] : null;
+
+  // Filter the application documents so officer only sees relevant ones
+  const finalDocs = allowedDocTypes ? app.documents.filter((d: any) => allowedDocTypes.includes(d.name)) : app.documents;
+
   const riskColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800 border-red-200",
     Orange: "bg-orange-100 text-orange-800 border-orange-200",
@@ -142,12 +157,12 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="text-slate-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" /> Submitted Documents ({app.documents.length})
+                <FileText className="w-5 h-5 text-blue-600" /> Submitted Documents ({finalDocs.length})
               </CardTitle>
-              <CardDescription className="text-slate-600">All documents uploaded by the applicant with timestamps</CardDescription>
+              <CardDescription className="text-slate-600">All required documents uploaded by the applicant for your department</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentList documents={app.documents} appId={app.id} />
+              <DocumentList documents={finalDocs} appId={app.id} />
             </CardContent>
           </Card>
         </div>

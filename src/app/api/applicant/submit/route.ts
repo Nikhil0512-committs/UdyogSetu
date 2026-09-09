@@ -55,7 +55,7 @@ export async function POST(request: Request) {
             type: docName,
             url: typedInfo.fileBase64 || typedInfo.fileName, // Use base64 if available
             isVerified: true,
-            ocrData: JSON.stringify({ ...formData, fileName: typedInfo.fileName })
+            ocrData: JSON.stringify({ ...formData, fileName: typedInfo.fileName, isDummy: !typedInfo.fileBase64 })
           }
         });
       }
