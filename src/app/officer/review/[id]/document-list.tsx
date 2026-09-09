@@ -23,7 +23,7 @@ export default function DocumentList({ documents, appId }: { documents: Submitte
                 <h4 className="font-semibold text-slate-900 text-sm">{doc.name}</h4>
                 <div className="flex items-center gap-3 mt-0.5">
                   <span className="text-xs text-slate-600">{doc.fileName} • {doc.fileSize}</span>
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                  <span className="text-xs text-slate-500 flex items-center gap-1" suppressHydrationWarning>
                     <Calendar className="w-3 h-3" /> {new Date(doc.uploadedAt).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
@@ -61,7 +61,7 @@ export default function DocumentList({ documents, appId }: { documents: Submitte
               <FileText className="w-5 h-5 text-blue-600" />
               {selectedDoc?.name}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription suppressHydrationWarning>
               {selectedDoc?.fileName} • {selectedDoc?.fileSize} • Uploaded on {selectedDoc ? new Date(selectedDoc.uploadedAt).toLocaleString("en-IN") : ""}
             </DialogDescription>
           </DialogHeader>
