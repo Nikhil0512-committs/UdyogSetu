@@ -29,6 +29,7 @@ export default function MeetingRoom({
   useEffect(() => {
     if (!client || initDone.current) return;
 
+    let isMounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
     let currentCall: any = null; // Track the call instance synchronously
 
@@ -37,11 +38,20 @@ export default function MeetingRoom({
       try {
         setStatus("Joining call...");
         await callInstance.join({ create: true });
+        
+        if (!isMounted) {
+          // Unmounted while join was in progress! Leave immediately.
+          await callInstance.leave().catch(() => {});
+          return;
+        }
+        
         setCall(callInstance);
       } catch (err: any) {
         console.error("join failed", err);
-        setError(err?.message || "Failed to join the call.");
-        initDone.current = false;
+        if (isMounted) {
+          setError(err?.message || "Failed to join the call.");
+          initDone.current = false;
+        }
       }
     };
 
@@ -51,20 +61,28 @@ export default function MeetingRoom({
     if (client.state.connectedUser) {
       initDone.current = true;
       joinCall(callInstance);
-      return;
+    } else {
+      // Otherwise wait for the user to connect (token fetch is async)
+      subscription = client.state.connectedUser$.subscribe((user) => {
+        if (user && !initDone.current) {
+          initDone.current = true;
+          subscription?.unsubscribe();
+          subscription = null;
+          joinCall(callInstance);
+        }
+      });
     }
 
-    // Otherwise wait for the user to connect (token fetch is async)
-    subscription = client.state.connectedUser$.subscribe((user) => {
-      if (user && !initDone.current) {
-        initDone.current = true;
-        subscription?.unsubscribe();
-        subscription = null;
-        joinCall(callInstance);
+    const handleBeforeUnload = () => {
+      if (currentCall) {
+        currentCall.leave();
       }
-    });
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
+      isMounted = false;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       subscription?.unsubscribe();
       if (currentCall) {
         currentCall.leave().catch(() => {});
@@ -97,12 +115,19 @@ export default function MeetingRoom({
     );
   }
 
+  const seenUsers = new Set();
+  const deduplicatePredicate = (p: any) => {
+    if (seenUsers.has(p.userId)) return false;
+    seenUsers.add(p.userId);
+    return true;
+  };
+
   return (
     <StreamTheme>
       <StreamCall call={call}>
         <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
           <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-            <PaginatedGridLayout />
+            <PaginatedGridLayout filterParticipants={deduplicatePredicate} />
           </div>
           <div className="bg-slate-800 p-4 border-t border-slate-700 flex justify-center">
             <CallControls onLeave={() => router.back()} />
