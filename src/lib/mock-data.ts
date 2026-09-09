@@ -109,7 +109,7 @@ const MOCK_APPLICATIONS: SubmittedApplication[] = [
 ];
 
 // In-memory store — acts as a simple "database"
-const globalAny = global as any;
+export const globalAny = global as any;
 if (!globalAny.mockApplications) {
   globalAny.mockApplications = [...MOCK_APPLICATIONS];
 }
