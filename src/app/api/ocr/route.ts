@@ -15,20 +15,7 @@ const KNOWN_DOC_KEYWORDS = [
   "labour", "shop", "establishment", "worker"
 ];
 
-function isLikelyIrrelevantFilename(fileName: string): boolean {
-  const name = (fileName || "").toLowerCase();
-  
-  const matchesKeyword = KNOWN_DOC_KEYWORDS.some(kw => name.includes(kw));
-  if (matchesKeyword) return false;
 
-  const randomImageRegex = /^(img|dsc|photo|pic|image|screenshot|file|test|sample|\d+)[\s_\-\.\d]*/i;
-  const irrelevantKeywords = ["wallpaper", "meme", "cat", "dog", "person", "selfie", "avatar", "nature", "background"];
-  
-  if (irrelevantKeywords.some(ik => name.includes(ik))) return true;
-  if (randomImageRegex.test(name) && !matchesKeyword) return true;
-
-  return false;
-}
 
 // Extract raw text segments directly from PDF stream buffer
 function extractTextFromPdfBase64(base64Data: string): string {
@@ -105,13 +92,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
     }
 
-    if (!targetDocName && isLikelyIrrelevantFilename(fileName)) {
-      return NextResponse.json({
-        success: false,
-        isIrrelevant: true,
-        error: "Unrecognized or irrelevant image. Please upload a valid business document (PAN, GST, Udyam, Land Deed, Site Plan, Aadhaar)."
-      }, { status: 400 });
-    }
+
 
     // Extract text from PDF buffer if PDF
     const pdfText = (mimeType === "application/pdf" || fileName?.endsWith(".pdf")) ? extractTextFromPdfBase64(fileBase64) : "";
@@ -167,7 +148,7 @@ Respond ONLY in JSON format:
           : { type: "image" as const, image: cleanBase64 };
 
         const result = await generateText({
-          model: google("gemini-1.5-flash"),
+          model: google("gemini-flash-lite-latest"),
           system: systemPrompt,
           messages: [
             {
