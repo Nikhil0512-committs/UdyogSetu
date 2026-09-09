@@ -25,6 +25,7 @@ export async function fetchInspectionSchedule() {
     // Try to get from database first
     const inspection = await prisma.inspection.findFirst({
       orderBy: { createdAt: "desc" },
+      include: { applicant: true }
     });
     if (inspection) {
       const scheduledDate = inspection.scheduledDate;
@@ -64,6 +65,8 @@ export async function fetchInspectionSchedule() {
         proposedFormatted,
         reason: inspection.rescheduleReason,
         initiator: inspection.initiator,
+        applicantName: inspection.applicant?.name || "Applicant",
+        companyName: inspection.applicant?.companyName || "Applicant Enterprise",
       };
     }
   } catch (err) {

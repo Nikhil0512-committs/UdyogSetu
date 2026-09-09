@@ -120,7 +120,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
                   <Video className="h-5 w-5 text-blue-600" />
                   Upcoming Video Verification
                 </CardTitle>
-                <CardDescription>Applicant: Acme Steel Industries Pvt Ltd</CardDescription>
+                <CardDescription>Applicant: {schedule?.companyName || "Applicant Enterprise"}</CardDescription>
               </div>
               <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Action Required</Badge>
             </div>
@@ -130,7 +130,7 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
             <div className="rounded-lg border bg-slate-50 p-4">
               <h3 className="font-semibold text-slate-900">Low-Risk Self-Certification Review</h3>
               <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
-                <User className="h-4 w-4" /> Applicant Rep: Rahul Sharma
+                <User className="h-4 w-4" /> Applicant Rep: {schedule?.applicantName || "Applicant"}
               </p>
               <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
                 <Clock className="h-4 w-4" /> {schedule.formatted}
