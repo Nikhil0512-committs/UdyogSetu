@@ -52,9 +52,23 @@ export async function fetchWalletDocuments(userId: string) {
 
 export async function saveWalletDocument(userId: string, payload: any) {
   try {
+    const uid = userId || "app-user-1";
+    
+    // Ensure the user exists in DB to prevent foreign key constraint failures
+    await prisma.user.upsert({
+      where: { id: uid },
+      update: {},
+      create: {
+        id: uid,
+        name: "Demo User",
+        email: `${uid}@example.com`,
+        role: "APPLICANT"
+      }
+    });
+
     const doc = await prisma.document.create({
       data: {
-        userId: userId || "app-user-1",
+        userId: uid,
         type: payload.type,
         url: payload.fileBase64,
         isVerified: payload.status === "VERIFIED",
