@@ -76,7 +76,6 @@ export default function OfficerInspectionsClient({ officerId }: { officerId: str
       }
 
       await call.getOrCreate({ ring: true, data: { members } });
-      await call.ring();
       toast.success("Ringing applicant...");
       router.push(`/meeting/${callId}`);
     } catch (err: any) {

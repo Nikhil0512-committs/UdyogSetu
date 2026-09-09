@@ -115,19 +115,12 @@ export default function MeetingRoom({
     );
   }
 
-  const seenUsers = new Set();
-  const deduplicatePredicate = (p: any) => {
-    if (seenUsers.has(p.userId)) return false;
-    seenUsers.add(p.userId);
-    return true;
-  };
-
   return (
     <StreamTheme>
       <StreamCall call={call}>
         <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
           <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-            <PaginatedGridLayout filterParticipants={deduplicatePredicate} />
+            <PaginatedGridLayout groupSize={2} />
           </div>
           <div className="bg-slate-800 p-4 border-t border-slate-700 flex justify-center">
             <CallControls onLeave={() => router.back()} />
