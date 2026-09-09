@@ -153,6 +153,7 @@ export default function DocumentWalletPage() {
   const [uploadDocNumber, setUploadDocNumber] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Summary counts
   const totalCount = documents.length;
@@ -175,68 +176,70 @@ export default function DocumentWalletPage() {
     return true;
   });
 
-  const handleSimulatedUpload = () => {
+  const handleUpload = () => {
     if (!selectedFile) {
       toast.error("Please drag & drop or browse to select a file first.");
       return;
     }
 
-    const lowerName = selectedFile.name.toLowerCase();
-    const typeLower = uploadDocType.toLowerCase();
-    
-    let isValid = false;
-    
-    if (typeLower === "pan card") {
-      isValid = lowerName.includes("pan");
-    } else if (typeLower === "certificate of incorporation") {
-      isValid = lowerName.includes("incorporation") || lowerName.includes("udyam") || lowerName.includes("cert") || lowerName.includes("cin");
-    } else if (typeLower === "gst certificate") {
-      isValid = lowerName.includes("gst");
-    } else if (typeLower === "land allotment letter") {
-      isValid = lowerName.includes("land") || lowerName.includes("allotment") || lowerName.includes("lease");
-    } else if (typeLower === "site layout plan") {
-      isValid = lowerName.includes("site") || lowerName.includes("layout") || lowerName.includes("plan") || lowerName.includes("drawing");
-    } else if (typeLower === "aadhaar") {
-      isValid = lowerName.includes("aadhaar");
-    } else {
-      // Fallback keyword check for other document types
-      const typeTokens = typeLower.split(/[\s_\-\.]+/).filter(t => t.length > 3);
-      isValid = typeTokens.length > 0 && typeTokens.some(t => lowerName.includes(t));
-    }
+    setIsUploading(true);
 
-    if (!isValid) {
-      toast.error(`Document mismatch: The uploaded file "${selectedFile.name}" does not appear to be a valid ${uploadDocType}.`);
-      setSelectedFile(null);
-      return;
-    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const fileBase64 = reader.result as string;
+      try {
+        const res = await fetch("/api/ocr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileBase64,
+            fileName: selectedFile.name,
+            mimeType: selectedFile.type || "application/pdf",
+            targetDocName: uploadDocType
+          })
+        });
 
-    const newDocName = selectedFile.name;
-    const newDoc: WalletDocument = {
-      id: `DOC-NEW-${Date.now().toString().slice(-4)}`,
-      type: uploadDocType,
-      docNumber: uploadDocNumber || `IN-${Math.floor(100000 + Math.random() * 900000)}`,
-      fileName: newDocName,
-      fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
-      uploadDate: "Just now",
-      expiryDate: "Lifetime Validity",
-      isExpiringSoon: false,
-      status: "PENDING",
-      issuer: "Applicant Uploaded (Pending Department Check)",
-      verifiedBy: "Queued for Automated AI & Officer Verification",
-      linkedApplications: []
+        const data = await res.json();
+
+        if (!data.success || data.isIrrelevant) {
+          toast.error(data.error || "Unrecognized or irrelevant file. Please upload a valid business document.");
+          setIsUploading(false);
+          return;
+        }
+
+        const newDoc: WalletDocument = {
+          id: `DOC-NEW-${Date.now().toString().slice(-4)}`,
+          type: data.documentType || uploadDocType,
+          docNumber: data.extractedData?.pan || data.extractedData?.gstin || uploadDocNumber || `IN-${Math.floor(100000 + Math.random() * 900000)}`,
+          fileName: selectedFile.name,
+          fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
+          uploadDate: "Just now",
+          expiryDate: "Lifetime Validity",
+          isExpiringSoon: false,
+          status: "VERIFIED",
+          issuer: "Verified via AI OCR",
+          verifiedBy: "Automated OCR API",
+          linkedApplications: []
+        };
+
+        setDocuments([newDoc, ...documents]);
+        setUploadDocNumber("");
+        setSelectedFile(null);
+        
+        toast.success(`"${data.documentType || uploadDocType}" uploaded successfully and verified!`);
+        
+        setUploadSuccessMessage(`"${data.documentType || uploadDocType}" verified and added to your wallet.`);
+        setTimeout(() => {
+          setUploadSuccessMessage(null);
+        }, 5000);
+      } catch (err) {
+        console.error("OCR API Error:", err);
+        toast.error("Failed to analyze document. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     };
-
-    setDocuments([newDoc, ...documents]);
-    setUploadDocNumber("");
-    setSelectedFile(null);
-    
-    // Show a toast notification for instant feedback
-    toast.success(`"${uploadDocType}" uploaded successfully and verified!`);
-    
-    setUploadSuccessMessage(`"${uploadDocType}" uploaded successfully and queued for instant verification.`);
-    setTimeout(() => {
-      setUploadSuccessMessage(null);
-    }, 5000);
+    reader.readAsDataURL(selectedFile);
   };
 
   return (
@@ -402,11 +405,16 @@ export default function DocumentWalletPage() {
 
                 <div className="pt-2">
                   <Button
-                    onClick={() => handleSimulatedUpload()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium gap-2"
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium gap-2 disabled:opacity-70"
                   >
-                    <UploadCloud className="w-4 h-4" />
-                    Upload &amp; Verify Document
+                    {isUploading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <UploadCloud className="w-4 h-4" />
+                    )}
+                    {isUploading ? "Verifying via AI..." : "Upload & Verify Document"}
                   </Button>
                 </div>
               </div>
