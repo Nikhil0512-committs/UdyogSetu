@@ -265,6 +265,10 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
   const uploadedCount = universalDocsUploaded + 
     checklist.filter(c => uploadedDocs[c.doc]?.uploaded).length;
 
+  const hasPan = !!uploadedDocs["PAN card (Company/Proprietor)"]?.uploaded;
+  const hasAadhaar = !!uploadedDocs["Aadhaar of Authorized Signatory"]?.uploaded;
+  const isSubmissionReady = universalDocsUploaded >= 6 && hasPan && hasAadhaar && formData.companyName;
+
   const riskColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800 border-red-200",
     Orange: "bg-orange-100 text-orange-800 border-orange-200",
@@ -520,13 +524,20 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                {universalDocsUploaded < 6 && (
+                {!isSubmissionReady && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
                     <p className="font-semibold">⚠ Cannot submit yet</p>
-                    <p className="mt-1">You must upload at least <strong>6 out of {universalDocs.length}</strong> universal documents before submitting. Currently uploaded: <strong>{universalDocsUploaded}</strong>.</p>
+                    <ul className="mt-1 ml-4 list-disc space-y-1">
+                      {universalDocsUploaded < 6 && (
+                        <li>You must upload at least <strong>6 out of {universalDocs.length}</strong> universal documents. Currently uploaded: <strong>{universalDocsUploaded}</strong>.</li>
+                      )}
+                      {!hasPan && <li><strong>PAN Card</strong> is strictly required for all businesses.</li>}
+                      {!hasAadhaar && <li><strong>Aadhaar Card</strong> is strictly required for the authorized signatory.</li>}
+                      {!formData.companyName && <li>Company details must be auto-filled from an uploaded document.</li>}
+                    </ul>
                   </div>
                 )}
-                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || universalDocsUploaded < 6 || !formData.companyName}>
+                <Button onClick={handleSubmit} className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting || !isSubmissionReady}>
                   {isSubmitting ? "Submitting..." : `Dispatch to All Departments (${universalDocsUploaded}/${universalDocs.length} docs ready)`}
                 </Button>
                 <Button variant="outline" onClick={() => router.back()} className="w-full">Back to Checklist</Button>
