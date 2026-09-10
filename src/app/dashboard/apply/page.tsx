@@ -9,7 +9,7 @@ export default async function ApplyPage() {
   const walletDocs = await fetchWalletDocuments(session.userId);
 
   const isDummyAccount = session.userId === "admin@company.com" || session.userId === "admin@acme.com";
-  const defaultCompanyName = isDummyAccount ? "M/S Rahul Sharma Industries" : `${session.name || "Applicant"}'s Enterprise`;
+  const defaultCompanyName = isDummyAccount ? "M/S Rahul Sharma Industries" : (session.companyName || `${session.name || "Applicant"}'s Enterprise`);
 
   return <ApplyClientPage walletDocs={walletDocs} defaultCompanyName={defaultCompanyName} />;
 }

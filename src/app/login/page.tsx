@@ -45,7 +45,7 @@ export default function LoginPage() {
       body: JSON.stringify({
         id: idValue,
         role,
-        name: role === "APPLICANT" ? "Rahul Sharma" : `Officer (${deptInfo?.label || "Admin"})`,
+        name: role === "OFFICER" ? `Officer (${deptInfo?.label || "Admin"})` : undefined,
         department: role === "OFFICER" ? department : undefined,
       }),
     });

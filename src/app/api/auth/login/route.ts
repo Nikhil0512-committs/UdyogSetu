@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     let resolvedName = name || (role === "APPLICANT" ? "Rahul Sharma" : `Officer (${department || "Admin"})`);
     let resolvedUserId = role === "APPLICANT" ? cleanId : `off-${(department || "admin").toLowerCase().replace(/[^a-z0-9]/g, "")}-1`;
 
+    let resolvedCompanyName = role === "APPLICANT" ? "Acme Steel Industries" : (department || "Government Department");
+
     if (role === "APPLICANT") {
       const userEmail = cleanId;
 
@@ -36,13 +38,14 @@ export async function POST(request: Request) {
         if (dbUser) {
           resolvedName = dbUser.name;
           resolvedUserId = dbUser.id;
+          resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
         }
       } catch (dbError) {
         console.warn("Database upsert fallback for dummy ID:", dbError);
       }
 
       // Also ensure local mock state knows about this user
-      addUser({ id: cleanId, name: resolvedName, companyName: "Acme Steel Industries", role: "APPLICANT" });
+      addUser({ id: cleanId, name: resolvedName, companyName: resolvedCompanyName, role: "APPLICANT" });
     } else if (role === "OFFICER") {
       const deptKey = (department || "admin").toLowerCase().replace(/[^a-z0-9]/g, "");
       const officerEmail = `officer-${deptKey}@udyogsetu.gov.in`;
@@ -70,6 +73,7 @@ export async function POST(request: Request) {
       userId: resolvedUserId,
       role,
       name: resolvedName,
+      companyName: resolvedCompanyName,
       department: department || undefined,
     };
     

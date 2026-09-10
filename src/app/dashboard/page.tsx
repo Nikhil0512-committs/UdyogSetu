@@ -45,7 +45,7 @@ export default async function DashboardPage() {
           <div className="flex gap-3 items-center bg-white border border-slate-200 px-3 py-2 rounded-lg shadow-sm">
             <span className="text-xs text-slate-500 font-medium">Enterprise Unit:</span>
             <select className="text-sm font-semibold text-slate-900 bg-transparent outline-none">
-              <option>HQ - {session.name}</option>
+              <option>HQ - {session.companyName || session.name}</option>
               <option>Branch 1</option>
             </select>
           </div>

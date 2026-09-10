@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const newSchemeApp = {
     id: newAppId,
     applicantName: session?.name || "Rahul Sharma",
-    companyName: isDummyAccount ? "Acme Steel Industries Pvt Ltd" : `${session?.name || "Applicant"}'s Enterprise`,
+    companyName: isDummyAccount ? "Acme Steel Industries Pvt Ltd" : (session?.companyName || `${session?.name || "Applicant"}'s Enterprise`),
     pan: isDummyAccount ? "ABCDE1234F" : "N/A",
     gstin: isDummyAccount ? "27ABCDE1234F1Z5" : "N/A",
     address: isDummyAccount ? "Unit 4, MIDC Industrial Area, Pune" : "Address Not Provided",
