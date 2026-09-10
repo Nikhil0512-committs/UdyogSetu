@@ -35,21 +35,57 @@ export async function POST(request: Request) {
             }
           });
           
-          // Seed the application for MIDC so it shows in the Officer's queue
-          const existingApp = await prisma.application.findFirst({
+          // Seed 3 applications for testing (different risk categories)
+          const existingApps = await prisma.application.findMany({
             where: { applicantId: dbUser.id }
           });
           
-          if (!existingApp) {
+          if (existingApps.length === 0) {
+            // App 1: Green (low risk) — eligible for video call
             await prisma.application.create({
               data: {
-                id: `APP-DUMMY-${Math.floor(Math.random() * 90000) + 10000}`,
+                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
                 applicantId: dbUser.id,
                 status: "IN_REVIEW",
-                riskScore: 30, // Green category (< 50) for video call testing
+                riskScore: 25,
+                submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
                 approvals: {
                   create: [
-                    { department: "MIDC", approvalName: "Consent to Establish" }
+                    { department: "MIDC", approvalName: "Consent to Establish", status: "PENDING" },
+                    { department: "MPCB", approvalName: "Consent to Operate (Water)", status: "PENDING" },
+                  ]
+                }
+              }
+            });
+
+            // App 2: Orange (medium risk) — manual visit required
+            await prisma.application.create({
+              data: {
+                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
+                applicantId: dbUser.id,
+                status: "IN_REVIEW",
+                riskScore: 65,
+                submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+                approvals: {
+                  create: [
+                    { department: "MIDC", approvalName: "Factory Building Plan Approval", status: "APPROVED" },
+                    { department: "Fire Services Department", approvalName: "Provisional Fire NOC", status: "PENDING" },
+                  ]
+                }
+              }
+            });
+
+            // App 3: Green (low risk) — also eligible for video call
+            await prisma.application.create({
+              data: {
+                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
+                applicantId: dbUser.id,
+                status: "SUBMITTED",
+                riskScore: 20,
+                submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                approvals: {
+                  create: [
+                    { department: "MIDC", approvalName: "Land Allotment Verification", status: "PENDING" },
                   ]
                 }
               }
@@ -64,6 +100,7 @@ export async function POST(request: Request) {
           if (!existingInspection) {
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
+            nextWeek.setHours(15, 0, 0, 0);
             await prisma.inspection.create({
               data: {
                 applicantId: dbUser.id,
