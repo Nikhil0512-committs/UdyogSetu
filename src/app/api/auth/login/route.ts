@@ -34,6 +34,45 @@ export async function POST(request: Request) {
               role: "APPLICANT",
             }
           });
+          
+          // Seed the application for MIDC so it shows in the Officer's queue
+          const existingApp = await prisma.application.findFirst({
+            where: { applicantId: dbUser.id }
+          });
+          
+          if (!existingApp) {
+            await prisma.application.create({
+              data: {
+                id: `APP-DUMMY-${Math.floor(Math.random() * 90000) + 10000}`,
+                applicantId: dbUser.id,
+                status: "IN_REVIEW",
+                riskScore: 30, // Green category (< 50) for video call testing
+                approvals: {
+                  create: [
+                    { department: "MIDC", approvalName: "Consent to Establish" }
+                  ]
+                }
+              }
+            });
+          }
+          
+          // Seed an inspection for testing reschedule and video call
+          const existingInspection = await prisma.inspection.findFirst({
+            where: { applicantId: dbUser.id }
+          });
+          
+          if (!existingInspection) {
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            await prisma.inspection.create({
+              data: {
+                applicantId: dbUser.id,
+                department: "MIDC",
+                status: "SCHEDULED",
+                scheduledDate: nextWeek,
+              }
+            });
+          }
         } else {
           dbUser = await prisma.user.findUnique({
             where: { email: userEmail }
