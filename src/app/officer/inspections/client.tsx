@@ -264,9 +264,9 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
                   Orange: "bg-orange-100 text-orange-800 border-orange-200",
                   Green: "bg-emerald-100 text-emerald-800 border-emerald-200",
                 };
-                const needsVideo = app.riskCategory === "Red" || app.riskCategory === "Orange";
+                const needsManual = app.riskCategory === "Red" || app.riskCategory === "Orange";
                 return (
-                  <div key={app.id} className={`p-3 rounded-lg border ${needsVideo ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
+                  <div key={app.id} className={`p-3 rounded-lg border ${needsManual ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-slate-900 text-sm">{app.companyName}</p>
@@ -276,10 +276,10 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${riskColors[app.riskCategory] || riskColors.Green}`}>
                           {app.riskCategory}
                         </span>
-                        {needsVideo ? (
-                          <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[10px]">Video Required</Badge>
+                        {needsManual ? (
+                          <Badge className="bg-red-100 text-red-800 border-red-200 text-[10px] hover:bg-red-200">Manual Visit</Badge>
                         ) : (
-                          <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-[10px]">Self-Cert</Badge>
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[10px] hover:bg-blue-200">Video Verify</Badge>
                         )}
                       </div>
                     </div>

@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const inv = await prisma.inspection.findFirst({orderBy:{createdAt:'desc'}, include: {applicant:true}}); console.log(inv); } main().catch(console.error).finally(()=>prisma.$disconnect());

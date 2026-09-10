@@ -20,10 +20,16 @@ if (!globalAny.mockMeetingSchedule.status) {
   globalAny.mockMeetingSchedule.initiator = null;
 }
 
+import { getSession } from "@/lib/auth";
+
 export async function fetchInspectionSchedule() {
   try {
+    const session = await getSession();
+    const isOfficer = session?.role === "OFFICER";
+    
     // Try to get from database first
     const inspection = await prisma.inspection.findFirst({
+      where: isOfficer && session?.department ? { department: session.department } : (session?.userId ? { applicantId: session.userId } : {}),
       orderBy: { createdAt: "desc" },
       include: { applicant: true }
     });
@@ -65,8 +71,8 @@ export async function fetchInspectionSchedule() {
         proposedFormatted,
         reason: inspection.rescheduleReason,
         initiator: inspection.initiator,
-        applicantName: inspection.applicant?.name || "Applicant",
-        companyName: inspection.applicant?.companyName || "Applicant Enterprise",
+        applicantName: inspection.applicant?.name || "Rahul Sharma",
+        companyName: inspection.applicant?.companyName || "Acme Steel Industries",
       };
     }
   } catch (err) {
@@ -84,6 +90,8 @@ export async function fetchInspectionSchedule() {
     proposedFormatted: globalAny.mockMeetingSchedule.proposedFormatted,
     reason: globalAny.mockMeetingSchedule.reason,
     initiator: globalAny.mockMeetingSchedule.initiator,
+    applicantName: "Rahul Sharma",
+    companyName: "Acme Steel Industries",
   };
 }
 
