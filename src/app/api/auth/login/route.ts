@@ -167,6 +167,7 @@ export async function POST(request: Request) {
       userId: resolvedUserId,
       role,
       name: resolvedName,
+      email: cleanId,
       companyName: resolvedCompanyName,
       department: department || undefined,
     };

@@ -4,8 +4,10 @@ import { CheckCircle2, Clock, MapPin, AlertTriangle, Building, FileText, CheckCi
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 
 export default async function TrackingPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAuth();
   const { id } = await params;
   
   const dbApp = await prisma.application.findUnique({
@@ -31,23 +33,38 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
       riskCategory: dbApp.riskScore && dbApp.riskScore >= 80 ? "Red" : dbApp.riskScore && dbApp.riskScore >= 50 ? "Orange" : "Green",
       submittedAt: dbApp.submittedAt ? dbApp.submittedAt.toISOString() : new Date().toISOString(),
       status: dbApp.status,
-      documents: dbApp.documents.map(d => ({
-        id: d.id,
-        name: d.type,
-        fileName: d.url,
-        fileSize: "Unknown",
-        uploadedAt: d.createdAt.toISOString(),
-        verified: d.isVerified,
-        ocrExtracted: d.ocrData ? JSON.parse(d.ocrData) : null
-      })),
+      documents: dbApp.documents.map(d => {
+        let parsedOcr = null;
+        if (d.ocrData) {
+          try {
+            parsedOcr = JSON.parse(d.ocrData);
+          } catch (e) {}
+        }
+        return {
+          id: d.id,
+          name: d.type,
+          fileName: d.url,
+          fileSize: "Unknown",
+          uploadedAt: d.createdAt.toISOString(),
+          verified: d.isVerified,
+          ocrExtracted: parsedOcr
+        };
+      }),
       approvals: dbApp.approvals.map(a => ({
         id: a.id,
         dept: a.department,
         name: a.approvalName,
         status: a.status,
-        officerComment: "" // Currently no direct officerComment field on ApprovalRequirement, but it's okay for tracking view
+        officerComment: ""
       }))
     };
+  } else {
+    // Check in-memory mock store fallback (e.g. for freshly submitted schemes or demo mock apps)
+    const globalAny = global as any;
+    const mockApp = globalAny.mockApplications?.find((a: any) => a.id === id);
+    if (mockApp) {
+      app = mockApp;
+    }
   }
 
   if (!app) {

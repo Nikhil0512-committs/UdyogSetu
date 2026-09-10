@@ -7,6 +7,7 @@ export interface MockSession {
   userId: string;
   role: Role;
   name: string;
+  email?: string;
   companyName?: string;
   department?: string; // e.g. "MIDC", "MPCB", "Fire Services Department", etc.
 }

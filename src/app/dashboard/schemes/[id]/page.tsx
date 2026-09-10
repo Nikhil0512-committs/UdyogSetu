@@ -16,11 +16,11 @@ export default async function SchemeApplicationPage({ params }: { params: Promis
       companyName = user.companyName;
     } else {
       // Use dummy data only if it is the dummy account, otherwise default
-      const isDummyAccount = session.userId === "admin@company.com" || session.userId === "admin@acme.com";
+      const isDummyAccount = session.email === "admin@company.com" || session.email === "admin@acme.com" || session.userId === "admin@company.com" || session.userId === "admin@acme.com";
       companyName = isDummyAccount ? "M/S Rahul Sharma Industries" : (session.companyName || `${session.name}'s Enterprise`);
     }
   } catch (err) {
-    const isDummyAccount = session.userId === "admin@company.com" || session.userId === "admin@acme.com";
+    const isDummyAccount = session.email === "admin@company.com" || session.email === "admin@acme.com" || session.userId === "admin@company.com" || session.userId === "admin@acme.com";
     companyName = isDummyAccount ? "M/S Rahul Sharma Industries" : (session.companyName || `${session.name}'s Enterprise`);
   }
 

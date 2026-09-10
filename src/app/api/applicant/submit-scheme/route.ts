@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   const { schemeId, schemeName } = await request.json();
@@ -59,6 +60,63 @@ export async function POST(request: Request) {
   };
 
   globalAny.mockApplications.push(newSchemeApp);
+
+  // Also persist in Neon DB if available so tracking and officer review work seamlessly
+  try {
+    const uid = session?.userId || "app-user-1";
+    
+    // Ensure applicant exists
+    await prisma.user.upsert({
+      where: { id: uid },
+      update: {},
+      create: {
+        id: uid,
+        name: session?.name || "Rahul Sharma",
+        email: `${uid}@example.com`,
+        role: "APPLICANT",
+        companyName: newSchemeApp.companyName,
+      }
+    });
+
+    await prisma.application.create({
+      data: {
+        id: newAppId,
+        applicantId: uid,
+        status: "IN_REVIEW",
+        riskScore: 20,
+        submittedAt: new Date(),
+        approvals: {
+          create: [
+            {
+              department: "Directorate of Industries",
+              approvalName: schemeName,
+              status: "PENDING"
+            }
+          ]
+        },
+        documents: {
+          create: [
+            {
+              userId: uid,
+              type: "PAN Card",
+              url: "pan_card.pdf",
+              isVerified: true,
+              ocrData: JSON.stringify({ "PAN Number": newSchemeApp.pan, "Name": newSchemeApp.applicantName, fileName: "pan_card.pdf" })
+            },
+            {
+              userId: uid,
+              type: "Project Report / DBP",
+              url: "project_report.pdf",
+              isVerified: false,
+              ocrData: JSON.stringify({ fileName: "project_report.pdf" })
+            }
+          ]
+        }
+      }
+    });
+  } catch (dbErr) {
+    console.warn("Could not persist scheme app to DB, using mock fallback:", dbErr);
+  }
 
   return NextResponse.json({ success: true, appId: newAppId });
 }
