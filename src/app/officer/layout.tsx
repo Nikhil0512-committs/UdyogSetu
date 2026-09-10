@@ -11,9 +11,7 @@ export default async function OfficerLayout({ children }: { children: React.Reac
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-10 text-white">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-amber-500 rounded-md flex items-center justify-center text-slate-900 font-bold">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+          <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-8 w-auto object-contain bg-white rounded p-1" />
           <div>
             <span className="text-lg font-bold block">Officer Portal</span>
             {session.department && <span className="text-xs text-amber-400 font-medium">{session.department}</span>}

@@ -36,12 +36,12 @@ export default function Home() {
       {/* Nav */}
       <header className="sticky top-0 z-10" style={{ backgroundColor: "var(--cream)" }}>
         <div className="max-w-[1080px] mx-auto px-8 py-5 flex items-center justify-between">
-          <span
-            className={`${heading} text-xl font-medium`}
-            style={{ color: "var(--ashoka)" }}
-          >
-            UdyogSetu
-          </span>
+          <div className="flex items-center gap-2">
+            <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-10 w-auto object-contain" />
+            <span className="font-bold text-xl tracking-tight text-slate-900">
+              UdyogSetu
+            </span>
+          </div>
 
           <nav className="hidden md:flex items-center gap-8">
             <a href="#how-it-works" className="text-sm text-slate-500 hover:text-slate-700" style={{ color: "var(--ink-muted)" }}>

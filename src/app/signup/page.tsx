@@ -62,7 +62,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-xl mx-auto mb-3">U</div>
+          <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-900">Register Business</h1>
           <p className="text-slate-500 mt-2">Create your single-window profile</p>
         </div>
