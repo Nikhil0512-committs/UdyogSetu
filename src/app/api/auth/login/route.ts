@@ -35,69 +35,65 @@ export async function POST(request: Request) {
             }
           });
           
-          // Seed 3 applications for testing (different risk categories)
-          const existingApps = await prisma.application.findMany({
-            where: { applicantId: dbUser.id }
-          });
+          if (dbUser) {
+            resolvedName = dbUser.name;
+            resolvedUserId = dbUser.id;
+            resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
+          }
           
-          if (existingApps.length < 3) {
-            // Clear old incomplete seed data first
-            for (const oldApp of existingApps) {
-              await prisma.approvalRequirement.deleteMany({ where: { applicationId: oldApp.id } });
-              await prisma.applicationReview.deleteMany({ where: { applicationId: oldApp.id } });
-              await prisma.document.deleteMany({ where: { applicationId: oldApp.id } });
-            }
-            await prisma.application.deleteMany({ where: { applicantId: dbUser.id } });
-
-            // App 1: Green (low risk) — eligible for video call
-            await prisma.application.create({
-              data: {
-                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
-                applicantId: dbUser.id,
+          // Seed 3 applications for testing using robust upserts
+          try {
+            const seedApps = [
+              {
+                id: `APP-SEED-${dbUser.id}-1`,
                 status: "IN_REVIEW",
                 riskScore: 25,
                 submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-                approvals: {
-                  create: [
-                    { department: "MIDC", approvalName: "Consent to Establish", status: "PENDING" },
-                    { department: "MPCB", approvalName: "Consent to Operate (Water)", status: "PENDING" },
-                  ]
-                }
-              }
-            });
-
-            // App 2: Orange (medium risk) — manual visit required
-            await prisma.application.create({
-              data: {
-                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
-                applicantId: dbUser.id,
+                approvals: [
+                  { department: "MIDC", approvalName: "Consent to Establish", status: "PENDING" },
+                  { department: "MPCB", approvalName: "Consent to Operate (Water)", status: "PENDING" }
+                ]
+              },
+              {
+                id: `APP-SEED-${dbUser.id}-2`,
                 status: "IN_REVIEW",
                 riskScore: 65,
                 submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-                approvals: {
-                  create: [
-                    { department: "MIDC", approvalName: "Factory Building Plan Approval", status: "APPROVED" },
-                    { department: "Fire Services Department", approvalName: "Provisional Fire NOC", status: "PENDING" },
-                  ]
-                }
-              }
-            });
-
-            // App 3: Green (low risk) — also eligible for video call
-            await prisma.application.create({
-              data: {
-                id: `APP-2026-${Math.floor(Math.random() * 90000) + 10000}`,
-                applicantId: dbUser.id,
+                approvals: [
+                  { department: "MIDC", approvalName: "Factory Building Plan Approval", status: "APPROVED" },
+                  { department: "Fire Services Department", approvalName: "Provisional Fire NOC", status: "PENDING" }
+                ]
+              },
+              {
+                id: `APP-SEED-${dbUser.id}-3`,
                 status: "SUBMITTED",
                 riskScore: 20,
                 submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-                approvals: {
-                  create: [
-                    { department: "MIDC", approvalName: "Land Allotment Verification", status: "PENDING" },
-                  ]
-                }
+                approvals: [
+                  { department: "MIDC", approvalName: "Land Allotment Verification", status: "PENDING" }
+                ]
               }
-            });
+            ];
+
+            for (const app of seedApps) {
+              const existingApp = await prisma.application.findUnique({ where: { id: app.id } });
+              if (!existingApp) {
+                await prisma.application.create({
+                  data: {
+                    id: app.id,
+                    applicantId: dbUser.id,
+                    status: app.status,
+                    riskScore: app.riskScore,
+                    submittedAt: app.submittedAt,
+                    approvals: {
+                      create: app.approvals
+                    }
+                  }
+                });
+              }
+            }
+          } catch (seedErr) {
+            console.warn("Application seeding failed (non-fatal):", seedErr);
           }
           
           // Seed an inspection for testing reschedule and video call
@@ -126,12 +122,12 @@ export async function POST(request: Request) {
           if (!dbUser) {
             return NextResponse.json({ success: false, error: "Account not found. Please register your business first." }, { status: 401 });
           }
-        }
-
-        if (dbUser) {
-          resolvedName = dbUser.name;
-          resolvedUserId = dbUser.id;
-          resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
+          
+          if (dbUser) {
+            resolvedName = dbUser.name;
+            resolvedUserId = dbUser.id;
+            resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
+          }
         }
       } catch (dbError: any) {
         console.error("Database error during login:", dbError);
