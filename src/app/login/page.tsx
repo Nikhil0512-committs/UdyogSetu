@@ -64,7 +64,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="text-center mb-8">
           <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-900">Sign in to UdyogSetu</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Sign In</h1>
           <p className="text-slate-600 mt-2">Maharashtra Industrial Approvals Platform</p>
         </div>
         
