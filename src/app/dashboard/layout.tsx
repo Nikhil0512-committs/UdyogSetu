@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <p className="font-medium text-slate-900">{session.name}</p>
               <p className="text-slate-500 text-xs">M/S {session.companyName || `${session.name} Industries`}</p>
             </div>
-            <Link href="/api/auth/logout">
+            <Link href="/api/auth/logout" prefetch={false}>
               <Button variant="outline" size="sm">Logout</Button>
             </Link>
           </div>
