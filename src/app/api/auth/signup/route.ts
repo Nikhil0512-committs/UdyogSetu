@@ -30,8 +30,9 @@ export async function POST(request: Request) {
           role: role || "APPLICANT",
         }
       });
-    } catch (dbErr) {
-      console.warn("Database create/upsert warning:", dbErr);
+    } catch (dbErr: any) {
+      console.error("Database create/upsert error:", dbErr);
+      return NextResponse.json({ success: false, error: "Database error during registration." }, { status: 500 });
     }
 
     // Register in mock store for UI compatibility

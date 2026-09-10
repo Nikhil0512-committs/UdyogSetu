@@ -74,10 +74,12 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
   const identityDocs = ["PAN card (Company/Proprietor)", "Aadhaar of Authorized Signatory", "Certificate of Incorporation / Udyam", "GST Registration Certificate"];
   
   const deptSpecificMap: Record<string, string[]> = {
-    "Pollution Control Board (MPCB)": ["Consent to Establish (Water & Air)", "Project Report / Manufacturing Process Details", "Site Layout Plan / Building Plan Drawing", "Land Ownership / Lease Allotment"],
-    "Fire Department": ["Provisional Fire NOC", "Site Layout Plan / Building Plan Drawing"],
+    "MPCB": ["Consent to Establish (Water & Air)", "Project Report / Manufacturing Process Details", "Site Layout Plan / Building Plan Drawing", "Land Ownership / Lease Allotment"],
+    "Fire Services Department": ["Provisional Fire NOC", "Site Layout Plan / Building Plan Drawing"],
     "Labour Department": ["Shops & Establishment Registration"],
-    "Department of Industries": ["Project Report / Manufacturing Process Details", "Land Ownership / Lease Allotment"]
+    "DISH / Labour Department": ["Registration under Factories Act", "Worker safety & health policy"],
+    "Directorate of Industries": ["Project Report / Manufacturing Process Details", "Land Ownership / Lease Allotment"],
+    "MIDC": ["Factory Building Plan Approval", "Machinery layout & safety officer details"]
   };
 
   const allowedDocTypes = dept ? [...identityDocs, ...(deptSpecificMap[dept] || [])] : null;

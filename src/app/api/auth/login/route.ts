@@ -133,8 +133,9 @@ export async function POST(request: Request) {
           resolvedUserId = dbUser.id;
           resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
         }
-      } catch (dbError) {
-        console.warn("Database fallback for dummy ID:", dbError);
+      } catch (dbError: any) {
+        console.error("Database error during login:", dbError);
+        return NextResponse.json({ success: false, error: "Database error. Please try again." }, { status: 500 });
       }
 
       // Also ensure local mock state knows about this user

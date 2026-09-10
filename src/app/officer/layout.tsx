@@ -38,7 +38,7 @@ export default async function OfficerLayout({ children }: { children: React.Reac
               <p className="font-medium text-white">{session.name}</p>
               <p className="text-slate-400 text-xs">{session.department || "Admin"}</p>
             </div>
-            <Link href="/">
+            <Link href="/api/auth/logout">
               <Button variant="secondary" size="sm" className="bg-slate-800 text-white hover:bg-slate-700 border-none">Logout</Button>
             </Link>
           </div>

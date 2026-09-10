@@ -45,11 +45,18 @@ export default function SignupPage() {
       }
       
       // Auto login
-      await fetch("/api/auth/login", {
+      const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: email, role: "APPLICANT" })
       });
+      
+      const loginData = await loginRes.json();
+      if (!loginData.success) {
+        setError(loginData.error || "Auto-login failed after registration.");
+        setLoading(false);
+        return;
+      }
 
       router.push("/dashboard");
     } catch (err) {
