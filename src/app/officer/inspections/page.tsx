@@ -19,7 +19,8 @@ export default async function OfficerInspectionsPage() {
   });
 
   // Determine which risk categories allow video calls for this dept
-  // Red & Orange require video verification; Green & White are self-certification only
+  // Green & White are low-risk and allow remote video verification.
+  // Red & Orange are high-risk and mandate strict physical manual visits.
   const eligibleApps = apps
     .map(a => ({
       id: a.id,
@@ -29,7 +30,7 @@ export default async function OfficerInspectionsPage() {
       riskScore: a.riskScore || 0
     }));
 
-  const canVideoCall = eligibleApps.some(a => a.riskCategory === "Red" || a.riskCategory === "Orange");
+  const canVideoCall = eligibleApps.some(a => a.riskCategory === "Green" || a.riskCategory === "White");
 
   return <OfficerInspectionsClient officerId={officerId} department={dept} eligibleApps={eligibleApps} canVideoCall={canVideoCall} />;
 }

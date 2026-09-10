@@ -215,7 +215,7 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
               </DialogContent>
             </Dialog>
 
-            {/* Call Button - Only available for Red/Orange category applications */}
+            {/* Call Button - Only available for Green/White category applications */}
             {canVideoCall ? (
               <Button
                 onClick={handleCallApplicant}
@@ -232,10 +232,10 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
                   className="w-full bg-slate-200 text-slate-500 cursor-not-allowed flex gap-2 justify-center"
                 >
                   <Video className="h-4 w-4" />
-                  Video Call Not Required
+                  Manual Site Visit Required
                 </Button>
                 <p className="text-xs text-slate-500 mt-1 text-center">
-                  Video verification is only required for Red & Orange category applications. All current applications in your queue are Green (self-certification).
+                  Video verification is disabled. High-Risk (Red & Orange) applications strictly mandate physical manual visits.
                 </p>
               </div>
             )}
