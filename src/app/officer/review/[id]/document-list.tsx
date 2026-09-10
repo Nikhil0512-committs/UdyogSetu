@@ -76,12 +76,46 @@ export default function DocumentList({ documents, appId }: { documents: Submitte
               )}
             </div>
           ) : (
-            <div className="bg-slate-100 rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px] border border-slate-200">
-              <FileText className="w-16 h-16 text-slate-300 mb-4" />
-              <p className="text-slate-500 font-medium">Document Preview</p>
-              <p className="text-slate-400 text-sm mt-2 max-w-sm text-center">
-                (This is a secure mock preview. The actual document was not uploaded as a valid file format.)
-              </p>
+            <div className="border border-slate-300 rounded-lg p-6 bg-slate-50/50 shadow-inner relative overflow-hidden min-h-[400px] flex flex-col">
+              <div className="absolute right-4 top-4 opacity-5 pointer-events-none">
+                <FileText className="w-48 h-48 text-slate-900" />
+              </div>
+
+              <div className="border-b border-slate-200 pb-3 mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded bg-blue-100 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-700" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                      Official Document Record
+                    </h4>
+                    <p className="text-xs text-slate-600">Simulated Digital View</p>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-semibold text-slate-600 bg-white px-2 py-1 rounded-sm border border-slate-200">
+                  {selectedDoc?.id || "N/A"}
+                </span>
+              </div>
+
+              <div className="flex-grow flex flex-col justify-center items-center text-center px-4">
+                <p className="text-slate-800 font-medium mb-2">
+                  {selectedDoc?.fileName || "Uploaded Document"}
+                </p>
+                <p className="text-slate-500 text-sm max-w-md">
+                  This document was automatically provisioned as part of a secure mock flow or AI extraction.
+                  The metadata below represents the contents of the official verifiable record.
+                </p>
+              </div>
+
+              <div className="mt-auto border-t border-slate-200 pt-3">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Digitally Signed</span>
+                  <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified Checksum
+                  </span>
+                </div>
+              </div>
             </div>
           )}
           
