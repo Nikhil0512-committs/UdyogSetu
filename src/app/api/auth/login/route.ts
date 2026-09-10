@@ -19,29 +19,38 @@ export async function POST(request: Request) {
 
     if (role === "APPLICANT") {
       const userEmail = cleanId;
+      const isDummyAccount = userEmail === "admin@company.com" || userEmail === "admin@acme.com";
 
-      // Seamlessly upsert any dummy ID directly into the Neon PostgreSQL database
       try {
-        dbUser = await prisma.user.upsert({
-          where: { email: userEmail },
-          update: {
-            name: name || undefined
-          },
-          create: {
-            name: resolvedName,
-            email: userEmail,
-            companyName: "Acme Steel Industries",
-            panNumber: "DEFAULT_PAN",
-            role: "APPLICANT",
+        if (isDummyAccount) {
+          dbUser = await prisma.user.upsert({
+            where: { email: userEmail },
+            update: { name: name || undefined },
+            create: {
+              name: resolvedName,
+              email: userEmail,
+              companyName: "Acme Steel Industries",
+              panNumber: "DEFAULT_PAN",
+              role: "APPLICANT",
+            }
+          });
+        } else {
+          dbUser = await prisma.user.findUnique({
+            where: { email: userEmail }
+          });
+          
+          if (!dbUser) {
+            return NextResponse.json({ success: false, error: "Account not found. Please register your business first." }, { status: 401 });
           }
-        });
+        }
+
         if (dbUser) {
           resolvedName = dbUser.name;
           resolvedUserId = dbUser.id;
           resolvedCompanyName = dbUser.companyName || "Acme Steel Industries";
         }
       } catch (dbError) {
-        console.warn("Database upsert fallback for dummy ID:", dbError);
+        console.warn("Database fallback for dummy ID:", dbError);
       }
 
       // Also ensure local mock state knows about this user
