@@ -40,7 +40,15 @@ export async function POST(request: Request) {
             where: { applicantId: dbUser.id }
           });
           
-          if (existingApps.length === 0) {
+          if (existingApps.length < 3) {
+            // Clear old incomplete seed data first
+            for (const oldApp of existingApps) {
+              await prisma.approvalRequirement.deleteMany({ where: { applicationId: oldApp.id } });
+              await prisma.applicationReview.deleteMany({ where: { applicationId: oldApp.id } });
+              await prisma.document.deleteMany({ where: { applicationId: oldApp.id } });
+            }
+            await prisma.application.deleteMany({ where: { applicantId: dbUser.id } });
+
             // App 1: Green (low risk) — eligible for video call
             await prisma.application.create({
               data: {
