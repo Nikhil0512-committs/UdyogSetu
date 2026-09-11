@@ -4,7 +4,7 @@ import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, Sparkles, Send, Mic, MicOff } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from 'react-markdown';
 import { Message } from "ai";
 import { usePathname } from "next/navigation";
@@ -29,6 +29,15 @@ const getInitialMessages = (pathname: string): Message[] => {
   ];
 };
 
+// Hoisted out of the component so this object is built once at module load
+// instead of being reallocated on every single onerror firing.
+const VOICE_ERROR_MESSAGES: Record<string, string> = {
+  "not-allowed": "Microphone access was blocked. Allow it in your browser's site settings.",
+  "no-speech": "Didn't catch that - try again.",
+  "audio-capture": "No microphone was found.",
+  network: "Voice recognition needs an internet connection.",
+};
+
 export function AgentChatPanel() {
   const pathname = usePathname();
 
@@ -42,152 +51,150 @@ export function AgentChatPanel() {
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
-const [isListening, setIsListening] = useState(false);
-const [voiceLang, setVoiceLang] = useState<"en" | "mr">("en");
-const [voiceError, setVoiceError] = useState<string | null>(null);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const recognitionRef = useRef<any>(null);
-const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState<"en" | "mr">("en");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const clearVoiceTimeout = () => {
-  if (timeoutRef.current) {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
-  }
-};
-
-// Keep the mic's language in sync with the site's EN/Marathi toggle
-useEffect(() => {
-  const match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
-  if (match && match[1] && match[1].includes("/mr")) {
-    setVoiceLang("mr");
-  } else {
-    setVoiceLang("en");
-  }
-}, []);
-
-// Load from sessionStorage on mount
-useEffect(() => {
-  try {
-    const saved = sessionStorage.getItem("udyogsetu-chat-messages");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.length > 0) {
-        setMessages(parsed);
-      }
+  const clearVoiceTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-  } catch (e) {
-    console.error("Failed to restore chat", e);
-  }
-}, [setMessages]);
+  }, []);
 
-// Save to sessionStorage when messages change
-useEffect(() => {
-  if (messages.length > 0) {
-    sessionStorage.setItem("udyogsetu-chat-messages", JSON.stringify(messages));
-  }
-}, [messages]);
+  // Keep the mic's language in sync with the site's EN/Marathi toggle
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
+    if (match && match[1] && match[1].includes("/mr")) {
+      setVoiceLang("mr");
+    } else {
+      setVoiceLang("en");
+    }
+  }, []);
 
-useEffect(() => {
-  if (scrollRef.current) {
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }
-}, [messages, isLoading]);
-
-const startRecognition = (lang: "en-IN" | "en-US" | "mr-IN", isRetry = false) => {
-  // @ts-expect-error - Web Speech API typing is not fully supported in standard TS config
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    setVoiceError("Voice input isn't supported in this browser. Try Chrome or Edge.");
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = lang;
-  recognition.interimResults = false;
-  recognition.continuous = false;
-
-  recognition.onstart = () => {
-    setIsListening(true);
-    // Watchdog: Chrome sometimes fires onstart and then silently never
-    // calls onresult/onerror/onend if the recognition pipe breaks.
-    // If that happens, auto-retry once on a broader locale (en-US),
-    // which is more reliably supported than en-IN/mr-IN.
-    timeoutRef.current = setTimeout(() => {
-      try { recognition.stop(); } catch {}
-      if (!isRetry && lang !== "en-US") {
-        startRecognition("en-US", true);
-      } else {
-        setIsListening(false);
-        setVoiceError("Didn't get a response from the recognizer. Try again, or type instead.");
+  // Load from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("udyogsetu-chat-messages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) {
+          setMessages(parsed);
+        }
       }
-    }, 6000);
-  };
+    } catch (e) {
+      console.error("Failed to restore chat", e);
+    }
+  }, [setMessages]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recognition.onresult = (event: any) => {
-    clearVoiceTimeout();
-    const transcript = event.results[0][0].transcript;
-    handleInputChange({
-      target: { value: input ? `${input} ${transcript}` : transcript }
-    } as React.ChangeEvent<HTMLInputElement>);
-  };
+  // Save to sessionStorage when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem("udyogsetu-chat-messages", JSON.stringify(messages));
+    }
+  }, [messages]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recognition.onerror = (event: any) => {
-    clearVoiceTimeout();
-    // Retry once on en-US before giving up, same as the timeout path.
-    if (!isRetry && lang !== "en-US" && event.error !== "not-allowed") {
-      try { recognition.stop(); } catch {}
-      startRecognition("en-US", true);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const startRecognition = useCallback((lang: "en-IN" | "en-US" | "mr-IN", isRetry = false) => {
+    // @ts-expect-error - Web Speech API typing is not fully supported in standard TS config
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceError("Voice input isn't supported in this browser. Try Chrome or Edge.");
       return;
     }
-    setIsListening(false);
-    const messages: Record<string, string> = {
-      "not-allowed": "Microphone access was blocked. Allow it in your browser's site settings.",
-      "no-speech": "Didn't catch that - try again.",
-      "audio-capture": "No microphone was found.",
-      network: "Voice recognition needs an internet connection.",
-      language_not_supported: voiceLang === "mr"
-        ? "Marathi voice input isn't supported in this browser. Try Chrome on Android/desktop, or type instead."
-        : "Voice input isn't supported in this browser.",
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang;
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      // Watchdog: Chrome sometimes fires onstart and then silently never
+      // calls onresult/onerror/onend if the recognition pipe breaks.
+      // If that happens, auto-retry once on a broader locale (en-US),
+      // which is more reliably supported than en-IN/mr-IN.
+      timeoutRef.current = setTimeout(() => {
+        try { recognition.stop(); } catch {}
+        if (!isRetry && lang !== "en-US") {
+          startRecognition("en-US", true);
+        } else {
+          setIsListening(false);
+          setVoiceError("Didn't get a response from the recognizer. Try again, or type instead.");
+        }
+      }, 6000);
     };
-    setVoiceError(messages[event.error] ?? "Voice input failed. Please try again or type instead.");
-  };
 
-  recognition.onend = () => {
-    clearVoiceTimeout();
-    setIsListening(false);
-  };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      clearVoiceTimeout();
+      const transcript = event.results[0][0].transcript;
+      handleInputChange({
+        target: { value: input ? `${input} ${transcript}` : transcript }
+      } as React.ChangeEvent<HTMLInputElement>);
+    };
 
-  recognitionRef.current = recognition;
-  try {
-    recognition.start();
-  } catch {
-    setIsListening(false);
-    setVoiceError("Couldn't start voice input. Please try again.");
-  }
-};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      clearVoiceTimeout();
+      // Retry once on en-US before giving up, same as the timeout path.
+      if (!isRetry && lang !== "en-US" && event.error !== "not-allowed") {
+        try { recognition.stop(); } catch {}
+        startRecognition("en-US", true);
+        return;
+      }
+      setIsListening(false);
+      const errorMessages =
+        event.error === "language_not_supported"
+          ? (voiceLang === "mr"
+              ? "Marathi voice input isn't supported in this browser. Try Chrome on Android/desktop, or type instead."
+              : "Voice input isn't supported in this browser.")
+          : VOICE_ERROR_MESSAGES[event.error];
+      setVoiceError(errorMessages ?? "Voice input failed. Please try again or type instead.");
+    };
 
-const toggleVoice = () => {
-  setVoiceError(null);
+    recognition.onend = () => {
+      clearVoiceTimeout();
+      setIsListening(false);
+    };
 
-  if (isListening) {
-    clearVoiceTimeout();
-    recognitionRef.current?.stop();
-    return;
-  }
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setVoiceError("Couldn't start voice input. Please try again.");
+    }
+  }, [clearVoiceTimeout, handleInputChange, input, voiceLang]);
 
-  startRecognition(voiceLang === "mr" ? "mr-IN" : "en-IN");
-};
+  const toggleVoice = useCallback(() => {
+    setVoiceError(null);
 
-// Stop any in-flight recognition session if the panel unmounts mid-listen.
-useEffect(() => {
-  return () => {
-    clearVoiceTimeout();
-    recognitionRef.current?.stop();
-  };
-}, []);
+    if (isListening) {
+      clearVoiceTimeout();
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    startRecognition(voiceLang === "mr" ? "mr-IN" : "en-IN");
+  }, [isListening, clearVoiceTimeout, startRecognition, voiceLang]);
+
+  // Stop any in-flight recognition session if the panel unmounts mid-listen.
+  useEffect(() => {
+    return () => {
+      clearVoiceTimeout();
+      recognitionRef.current?.stop();
+    };
+  }, [clearVoiceTimeout]);
+
   const initialMsgs = getInitialMessages(pathname);
   const displayMessages = messages.length > 0 ? messages : initialMsgs;
 
