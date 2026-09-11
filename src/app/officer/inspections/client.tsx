@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Video, CheckCircle2, Clock, User, ChevronRight } from "lucide-react";
+import { Video, CheckCircle2, Clock, User, ChevronRight, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -274,19 +274,48 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
                   </div>
 
                   {schedule.status === "RESCHEDULE_REQUESTED" && schedule.initiator === "APPLICANT" && (
-                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
-                      <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
-                        <Clock className="w-4 h-4" /> Reschedule Request Pending
+                    <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-inner">
+                      <h4 className="text-sm font-bold text-slate-900 mb-4">Applicant Requested Reschedule</h4>
+                      <p className="text-sm text-slate-700 mb-6 bg-amber-50 p-3 rounded border border-amber-100">
+                        Proposed time: <strong className="font-semibold text-amber-900">{schedule.proposedFormatted}</strong>
+                        <br/>
+                        <span className="opacity-90">Reason: {schedule.reason || "None provided"}</span>
                       </p>
-                      <p className="text-sm text-amber-900 mt-2">
-                        Applicant wants to reschedule to <strong className="bg-amber-100 px-1 rounded">{schedule.proposedFormatted}</strong>.<br/>
-                        <span className="opacity-80">Reason: {schedule.reason || "None provided"}</span>
-                      </p>
-                      <div className="flex gap-2 mt-4">
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleApprove}>
+                      
+                      {/* Animated Stepper for Pending Request */}
+                      <div className="flex items-center justify-between relative px-2 mb-6">
+                        <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-slate-200 -z-10 -translate-y-1/2"></div>
+                        
+                        {/* Step 1: Requested */}
+                        <div className="flex flex-col items-center gap-2 z-10">
+                           <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                             <Check className="w-4 h-4"/>
+                           </div>
+                           <span className="text-emerald-700 font-medium text-xs text-center w-20">Requested<br/><span className="font-normal">{schedule.proposedFormatted?.split(',')[0]}</span></span>
+                        </div>
+                        
+                        {/* Step 2: Pending Officer */}
+                        <div className="flex flex-col items-center gap-2 z-10">
+                           <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md ring-4 ring-blue-100 animate-pulse">
+                             <User className="w-4 h-4"/>
+                           </div>
+                           <span className="text-blue-700 font-bold text-xs animate-pulse text-center w-24">Your Action<br/>Required</span>
+                        </div>
+                        
+                        {/* Step 3: Confirmed (Future) */}
+                        <div className="flex flex-col items-center gap-2 z-10">
+                           <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-200 text-slate-400 flex items-center justify-center">
+                             <CheckCircle2 className="w-4 h-4"/>
+                           </div>
+                           <span className="text-slate-500 font-medium text-xs text-center w-20">Confirmed</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 justify-center border-t border-slate-200 pt-4">
+                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[120px]" onClick={handleApprove}>
                           Approve Request
                         </Button>
-                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 bg-white" onClick={handleReject}>
+                        <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 bg-white min-w-[120px]" onClick={handleReject}>
                           Decline
                         </Button>
                       </div>

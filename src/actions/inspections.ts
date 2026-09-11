@@ -9,6 +9,7 @@ interface RescheduleRequest {
   newTime: string;
   reason: string;
   initiator: "APPLICANT" | "OFFICER";
+  applicantId?: string;
 }
 
 // Ensure mock global state has a pending status field
@@ -109,9 +110,17 @@ export async function requestReschedule(payload: RescheduleRequest) {
     const session = await getSession();
     const isOfficer = session?.role === "OFFICER";
     
+    let query: any = {};
+    if (isOfficer) {
+      if (payload.applicantId) query.applicantId = payload.applicantId;
+      else if (session?.department) query.department = session.department;
+    } else if (session?.userId) {
+      query.applicantId = session.userId;
+    }
+
     const proposedDateTime = new Date(`${payload.newDate}T${payload.newTime}:00`);
     const inspection = await prisma.inspection.findFirst({
-      where: isOfficer && session?.department ? { department: session.department } : (session?.userId ? { applicantId: session.userId } : {}),
+      where: query,
       orderBy: { createdAt: "desc" },
     });
 
