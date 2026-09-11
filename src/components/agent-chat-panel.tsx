@@ -3,7 +3,7 @@
 import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, Sparkles, Send, Mic } from "lucide-react";
+import { Bot, Sparkles, Send, Mic, MicOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from 'react-markdown';
 import { Message } from "ai";
@@ -43,6 +43,22 @@ export function AgentChatPanel() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState<"en" | "mr">("en");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+
+  // Keep the mic's language in sync with the site's EN/Marathi toggle
+  // (same googtrans cookie the PillLanguageToggle sets), so voice input
+  // always matches whatever language the user already picked.
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
+    if (match && match[1] && match[1].includes("/mr")) {
+      setVoiceLang("mr");
+    } else {
+      setVoiceLang("en");
+    }
+  }, []);
 
   // Load from sessionStorage on mount
   useEffect(() => {
@@ -73,31 +89,69 @@ export function AgentChatPanel() {
   }, [messages, isLoading]);
 
   const toggleVoice = () => {
-    if (isListening) return;
-    
+    setVoiceError(null);
+
+    // Clicking the mic again while listening should stop it, not no-op.
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
     // @ts-expect-error - Web Speech API typing is not fully supported in standard TS config
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Voice recognition is not supported in this browser.");
+      setVoiceError("Voice input isn't supported in this browser. Try Chrome or Edge.");
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN'; // Default to Indian English, though it handles Marathi reasonably well
+    // en-IN and mr-IN are both valid BCP-47 tags the Web Speech API accepts.
+    // Using the wrong one is why Marathi speech was coming through garbled -
+    // en-IN forces the recognizer to match audio against English phonemes
+    // even when the user is speaking Marathi.
+    recognition.lang = voiceLang === "mr" ? "mr-IN" : "en-IN";
     recognition.interimResults = false;
-    
+    recognition.continuous = false;
+
     recognition.onstart = () => setIsListening(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       handleInputChange({
         target: { value: input ? `${input} ${transcript}` : transcript }
       } as React.ChangeEvent<HTMLInputElement>);
     };
-    recognition.onerror = () => setIsListening(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      const messages: Record<string, string> = {
+        "not-allowed": "Microphone access was blocked. Allow it in your browser's site settings.",
+        "no-speech": "Didn't catch that - try again.",
+        "audio-capture": "No microphone was found.",
+        network: "Voice recognition needs an internet connection.",
+        language_not_supported: voiceLang === "mr"
+          ? "Marathi voice input isn't supported in this browser. Try Chrome on Android/desktop, or type instead."
+          : "Voice input isn't supported in this browser.",
+      };
+      setVoiceError(messages[event.error] ?? "Voice input failed. Please try again or type instead.");
+    };
     recognition.onend = () => setIsListening(false);
-    
-    recognition.start();
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setVoiceError("Couldn't start voice input. Please try again.");
+    }
   };
+
+  // Stop any in-flight recognition session if the panel unmounts mid-listen.
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const initialMsgs = getInitialMessages(pathname);
   const displayMessages = messages.length > 0 ? messages : initialMsgs;
@@ -147,21 +201,29 @@ export function AgentChatPanel() {
           <Input 
             value={input} 
             onChange={handleInputChange} 
-            placeholder={isListening ? "Listening..." : "Type in English or Marathi..."} 
+            placeholder={isListening ? (voiceLang === "mr" ? "ऐकत आहे..." : "Listening...") : "Type in English or Marathi..."} 
             className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-blue-500"
           />
           <Button 
             type="button" 
             variant="outline" 
-            onClick={toggleVoice} 
-            className={`w-10 p-0 ${isListening ? 'bg-red-50 text-red-500 border-red-200 animate-pulse' : 'text-slate-500'}`}
+            onClick={toggleVoice}
+            title={`Voice input (${voiceLang === "mr" ? "Marathi" : "English"}) - click again to stop`}
+            aria-label={isListening ? "Stop voice input" : "Start voice input"}
+            className={`w-10 p-0 relative ${isListening ? 'bg-red-50 text-red-500 border-red-200 animate-pulse' : 'text-slate-500'}`}
           >
-            <Mic className="w-4 h-4"/>
+            {isListening ? <MicOff className="w-4 h-4"/> : <Mic className="w-4 h-4"/>}
+            <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-slate-200 text-slate-600 rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+              {voiceLang === "mr" ? "मर" : "EN"}
+            </span>
           </Button>
           <Button type="submit" disabled={isLoading || !input?.trim()} className="bg-blue-600 hover:bg-blue-700 w-10 p-0">
             <Send className="w-4 h-4"/>
           </Button>
         </form>
+        {voiceError && (
+          <p className="text-[11px] text-center text-red-500 mt-2">{voiceError}</p>
+        )}
         <p className="text-[10px] text-center text-slate-400 mt-2">
           AI Co-pilot may occasionally generate incorrect information.
         </p>
