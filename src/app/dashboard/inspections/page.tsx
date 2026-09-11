@@ -324,15 +324,15 @@ export default function InspectionsPage() {
               <DialogTrigger className={buttonVariants({ variant: "outline", className: "w-full sm:flex-1 cursor-pointer bg-white" })}>
                 Reschedule
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
-                <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50">
+              <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50 flex-none">
                   <DialogTitle className="text-xl">Select a Date & Time</DialogTitle>
                   <DialogDescription className="mt-1">
                     Propose a new remote video verification slot. Government working hours are strictly between 10:00 AM and 5:00 PM.
                   </DialogDescription>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row min-h-[350px]">
+                <div className="flex flex-col sm:flex-row flex-1 min-h-[350px] overflow-y-auto">
                   {/* Left Pane: Custom Calendar */}
                   <div className="flex-1 p-6 border-r border-slate-100">
                     <div className="flex items-center justify-between mb-4">
@@ -411,13 +411,13 @@ export default function InspectionsPage() {
                 </div>
 
                 {date && time && (
-                  <div className="px-6 py-4 border-t border-slate-100 bg-white">
+                  <div className="px-6 py-4 border-t border-slate-100 bg-white flex-none">
                     <Label htmlFor="reason" className="mb-2 block">Optional Reason for Rescheduling</Label>
                     <Input id="reason" placeholder="e.g. Traveling out of station" value={reason} onChange={e => setReason(e.target.value)} />
                   </div>
                 )}
                 
-                <div className="p-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
+                <div className="p-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50 flex-none">
                   <Button type="button" variant="outline" onClick={() => setRescheduleOpen(false)} disabled={isSubmitting}>
                     Cancel
                   </Button>

@@ -32,56 +32,17 @@ export default function MeetingRoom({
 
   useEffect(() => {
     if (!client || !callId) return;
-    if (initDone.current) return;
-    initDone.current = true;
 
-    let myCall: any = null;
-    let cancelled = false;
-
-    const init = async () => {
-      try {
-        setStatus("Securing connection...");
-
-        myCall = client.call("default", callId);
-
-        // HARD BLOCK implicit auto-join
-        myCall.joined = false;
-
-        // Manual join
-        await myCall.join({ create: true });
-        myCall.joined = true;
-
-        if (cancelled) {
-          try {
-            await myCall.leave();
-          } catch {}
-          return;
-        }
-
-        setCall(myCall);
-      } catch (e: any) {
-        if (!cancelled) {
-          console.error(e);
-          setError(e?.message || "Failed to join call");
-        }
-      }
-    };
-
-    if (client.state.connectedUser) {
-      init();
-    } else {
-      const sub = client.state.connectedUser$.subscribe((user) => {
-        if (user) {
-          sub.unsubscribe();
-          init();
-        }
-      });
-    }
+    const myCall = client.call("default", callId);
+    
+    // We do NOT manually call myCall.join() here. 
+    // The <StreamCall call={myCall}> component automatically handles joining and publishing tracks 
+    // when it mounts. Doing it manually causes double video feeds (ghost participants).
+    setCall(myCall);
 
     return () => {
-      cancelled = true;
-      if (myCall) myCall.leave().catch(() => {});
-      initDone.current = false;
+      // The call will be cleaned up by the user clicking Leave/End, 
+      // or if they navigate away, StreamCall will unmount and leave automatically.
     };
   }, [client, callId]);
 
