@@ -122,11 +122,28 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
           const docKey = targetDocName || data.documentType || "Certificate of Incorporation / Udyam";
           
           if (data.extractedData) {
+            const isPanCard = docKey === "PAN card (Company/Proprietor)";
+            const isLandDoc = docKey === "Land Ownership / Lease Allotment";
+            const isGstDoc  = docKey === "GST Registration Certificate";
+            
             setFormData(prev => ({
-              pan: data.extractedData.pan || prev.pan,
+              // PAN: ONLY accept from actual PAN card
+              pan: isPanCard && data.extractedData.pan 
+                ? data.extractedData.pan 
+                : prev.pan,
+                
+              // Company Name: Accept from PAN, GST, or Incorporation (all are reliable)
               companyName: data.extractedData.companyName || prev.companyName,
-              address: data.extractedData.address || prev.address,
-              gstin: data.extractedData.gstin || prev.gstin
+              
+              // Address: ONLY accept from Land Ownership document
+              address: isLandDoc && data.extractedData.address 
+                ? data.extractedData.address 
+                : prev.address,
+                
+              // GSTIN: ONLY accept from actual GST certificate
+              gstin: isGstDoc && data.extractedData.gstin 
+                ? data.extractedData.gstin 
+                : prev.gstin
             }));
           }
 
