@@ -31,70 +31,59 @@ export default function MeetingRoom({
   const initDone = useRef(false);
 
   useEffect(() => {
-    if (!client || initDone.current) return;
+    if (!client || !callId) return;
+    if (initDone.current) return;
+    initDone.current = true;
 
-    let isMounted = true;
-    let subscription: { unsubscribe: () => void } | null = null;
-    let currentCall: any = null; // Track the call instance synchronously
+    let myCall: any = null;
+    let cancelled = false;
 
-    const joinCall = async (callInstance: any) => {
-      currentCall = callInstance;
+    const init = async () => {
       try {
-        setStatus("Joining call...");
-        await callInstance.join({ create: true });
-        
-        if (!isMounted) {
-          // Unmounted while join was in progress! Leave immediately.
-          await callInstance.leave().catch(() => {});
+        setStatus("Securing connection...");
+
+        myCall = client.call("default", callId);
+
+        // HARD BLOCK implicit auto-join
+        myCall.joined = false;
+
+        // Manual join
+        await myCall.join({ create: true });
+        myCall.joined = true;
+
+        if (cancelled) {
+          try {
+            await myCall.leave();
+          } catch {}
           return;
         }
-        
-        setCall(callInstance);
-      } catch (err: any) {
-        console.error("join failed", err);
-        if (isMounted) {
-          setError(err?.message || "Failed to join the call.");
-          initDone.current = false;
+
+        setCall(myCall);
+      } catch (e: any) {
+        if (!cancelled) {
+          console.error(e);
+          setError(e?.message || "Failed to join call");
         }
       }
     };
 
-    const callInstance = client.call("default", callId);
-
-    // Check if already connected
     if (client.state.connectedUser) {
-      initDone.current = true;
-      joinCall(callInstance);
+      init();
     } else {
-      // Otherwise wait for the user to connect (token fetch is async)
-      subscription = client.state.connectedUser$.subscribe((user) => {
-        if (user && !initDone.current) {
-          initDone.current = true;
-          subscription?.unsubscribe();
-          subscription = null;
-          joinCall(callInstance);
+      const sub = client.state.connectedUser$.subscribe((user) => {
+        if (user) {
+          sub.unsubscribe();
+          init();
         }
       });
     }
 
-    const handleBeforeUnload = () => {
-      if (currentCall) {
-        currentCall.leave();
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
     return () => {
-      isMounted = false;
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      subscription?.unsubscribe();
-      if (currentCall) {
-        currentCall.leave().catch(() => {});
-      }
+      cancelled = true;
+      if (myCall) myCall.leave().catch(() => {});
       initDone.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  }, [client, callId]);
 
   if (error) {
     return (
