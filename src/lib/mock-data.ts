@@ -236,9 +236,9 @@ export function addUser(user: { id: string, name: string, companyName: string, r
 
 if (!globalAny.mockMeetingSchedule) {
   globalAny.mockMeetingSchedule = {
-    date: "2026-08-28",
+    date: "2026-09-20",
     time: "15:00",
-    formatted: "28 Aug 2026, 03:00 PM"
+    formatted: "20 Sep 2026, 03:00 PM"
   };
 }
 
