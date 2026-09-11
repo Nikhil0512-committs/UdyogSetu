@@ -18,6 +18,7 @@ export default function MeetingRoom({
   callId: string;
   userId: string;
   userName: string;
+  userRole: string;
 }) {
   const client = useStreamVideoClient();
   const [call, setCall] = useState<any>(null);
@@ -118,7 +119,7 @@ export default function MeetingRoom({
   return (
     <StreamTheme>
       <StreamCall call={call}>
-        <MeetingUI call={call} />
+        <MeetingUI call={call} userRole={userRole} />
       </StreamCall>
     </StreamTheme>
   );
@@ -126,7 +127,7 @@ export default function MeetingRoom({
 
 import { useCallStateHooks } from "@stream-io/video-react-sdk";
 
-function MeetingUI({ call }: { call: any }) {
+function MeetingUI({ call, userRole }: { call: any, userRole: string }) {
   const router = useRouter();
   const { useCallEndedAt } = useCallStateHooks();
   const callEndedAt = useCallEndedAt();
@@ -140,7 +141,7 @@ function MeetingUI({ call }: { call: any }) {
   const handleLeave = async () => {
     try {
       // If we are the admin/officer, end the call for everyone
-      if (call.state.membership?.role === "admin") {
+      if (userRole === "OFFICER") {
         await call.endCall();
       } else {
         await call.leave();
@@ -155,8 +156,8 @@ function MeetingUI({ call }: { call: any }) {
     <div className="h-screen w-full bg-slate-900 text-white flex flex-col relative">
       {/* Diagnostic Badge to prove cookie identity */}
       <div className="absolute top-4 left-4 z-50 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono border border-white/10 flex items-center gap-2">
-        <span className={call.state.membership?.role === "admin" ? "text-blue-400" : "text-emerald-400"}>
-          You joined as: {call.state.membership?.role === "admin" ? "Officer" : "Applicant"}
+        <span className={userRole === "OFFICER" ? "text-blue-400" : "text-emerald-400"}>
+          You joined as: {userRole === "OFFICER" ? "Officer" : "Applicant"}
         </span>
       </div>
 

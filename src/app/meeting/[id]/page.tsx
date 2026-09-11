@@ -21,6 +21,6 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
     : session.name;
 
   return (
-    <MeetingRoom callId={id} userId={safeUserId} userName={userName} />
+    <MeetingRoom callId={id} userId={safeUserId} userName={userName} userRole={session.role} />
   );
 }
