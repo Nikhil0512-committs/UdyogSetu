@@ -24,7 +24,10 @@ function IncomingCallModal() {
 
   // Find the first incoming call that is ringing
   const ringingCall = calls.find(
-    (call) => !call.isCreatedByMe && call.state.callingState === CallingState.RINGING
+    (call) => {
+      const isRinging = call.state.callingState === CallingState.RINGING || (call.state.callingState as any) === 'ringing';
+      return !call.isCreatedByMe && isRinging;
+    }
   );
 
   useEffect(() => {
@@ -121,6 +124,13 @@ export default function StreamClientProvider({
     <StreamVideo client={videoClient}>
       {children}
       <IncomingCallModal />
+      
+      {/* Diagnostic Identity Badge - Always visible so user knows who Stream thinks they are */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 z-[9999] bg-black/80 backdrop-blur text-white px-3 py-2 rounded-lg text-xs font-mono border border-white/20 shadow-xl pointer-events-none">
+          Stream Identity: <span className={userName === 'Officer' || userId.includes('off') ? 'text-blue-400' : 'text-emerald-400'}>{userName} ({userId})</span>
+        </div>
+      )}
     </StreamVideo>
   );
 }
