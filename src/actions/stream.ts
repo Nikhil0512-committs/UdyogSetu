@@ -15,3 +15,23 @@ export async function generateStreamToken(userId: string) {
   
   return token;
 }
+
+export async function ensureStreamUsers(users: { id: string; name?: string }[]) {
+  if (!apiKey || !apiSecret) {
+    throw new Error("Stream API Key or Secret is missing");
+  }
+
+  const client = new StreamClient(apiKey, apiSecret);
+  
+  // Stream expects users to be registered before they can be added to calls.
+  // The 'upsertUsers' method creates them if they don't exist.
+  await client.upsertUsers(
+    users.map(u => ({
+      id: u.id,
+      name: u.name || "Unknown User",
+      role: 'user'
+    }))
+  );
+  
+  return true;
+}

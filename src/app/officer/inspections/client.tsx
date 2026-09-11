@@ -102,6 +102,14 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
 
     setIsCalling(true);
     try {
+      // Stream requires all call members to be explicitly upserted in its DB
+      // before they can be added to a call. We do this server-side first.
+      const { ensureStreamUsers } = await import("@/actions/stream");
+      await ensureStreamUsers([
+        { id: officerId, name: "Officer" },
+        { id: selectedApp.userId, name: selectedApp.applicantName }
+      ]);
+
       // Use a consistent call ID based on the application to prevent duplicates
       const callId = `inspection-${selectedApp.id}`;
       const call = client.call("default", callId);
