@@ -27,9 +27,9 @@ import StreamClientProvider from "@/components/StreamClientProvider";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  const safeUserId = session?.role === "APPLICANT" 
-    ? "app-user-1" 
-    : (session?.userId || session?.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase() || "");
+  const safeUserId = session?.userId 
+    ? session.userId 
+    : (session?.name ? session.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase() : "unknown-user");
   const userName = session?.role === "OFFICER" && session?.department 
     ? session.department 
     : (session?.name || "");
