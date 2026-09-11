@@ -24,6 +24,7 @@ export default async function OfficerInspectionsPage() {
   const eligibleApps = apps
     .map(a => ({
       id: a.id,
+      userId: a.applicantId,
       companyName: a.applicant?.companyName || "Unknown",
       applicantName: a.applicant?.name || "Unknown",
       riskCategory: a.riskScore && a.riskScore >= 80 ? "Red" : a.riskScore && a.riskScore >= 50 ? "Orange" : "Green",
