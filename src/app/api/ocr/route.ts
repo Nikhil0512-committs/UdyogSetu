@@ -161,10 +161,19 @@ Respond ONLY in JSON format:
           ],
         });
 
-        const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+        const resultText = result.text;
+        
+        // Aggressive Regex sweep on raw AI output for PAN and GSTIN
+        const rawPanMatch = resultText.match(/[A-Z]{5}\d{4}[A-Z]/i);
+        if (rawPanMatch) extractedPan = rawPanMatch[0].toUpperCase();
+        
+        const rawGstMatch = resultText.match(/\d{2}[A-Z]{5}\d{4}[A-Z]\d[Z][A-Z0-9]/i);
+        if (rawGstMatch) extractedGstin = rawGstMatch[0].toUpperCase();
+
+        const jsonMatch = resultText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          if (parsed.isIrrelevant || parsed.documentType === "IRRELEVANT_DOCUMENT") {
+          if ((parsed.isIrrelevant || parsed.documentType === "IRRELEVANT_DOCUMENT") && !targetDocName) {
             return NextResponse.json({
               success: false,
               isIrrelevant: true,

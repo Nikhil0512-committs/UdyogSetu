@@ -106,7 +106,15 @@ export default function ApplyClientPage({ walletDocs = [], defaultCompanyName = 
           const data = await res.json();
 
           if (!data.success || data.isIrrelevant) {
-            toast.error(data.error || `Unrecognized or irrelevant file: ${file.name}`);
+            if (targetDocName) {
+              setUploadedDocs(prev => ({
+                ...prev,
+                [targetDocName]: { uploaded: true, fileName: file.name, fileBase64: fileBase64 }
+              }));
+              toast.info(`Uploaded ${file.name} (AI verification skipped/failed)`);
+            } else {
+              toast.error(data.error || `Unrecognized or irrelevant file: ${file.name}`);
+            }
             resolve();
             return;
           }
