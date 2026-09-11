@@ -118,15 +118,47 @@ export default function MeetingRoom({
   return (
     <StreamTheme>
       <StreamCall call={call}>
-        <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
-          <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-            <PaginatedGridLayout groupSize={2} />
-          </div>
-          <div className="bg-slate-800 p-4 border-t border-slate-700 flex justify-center">
-            <CallControls onLeave={() => router.back()} />
-          </div>
-        </div>
+        <MeetingUI call={call} />
       </StreamCall>
     </StreamTheme>
+  );
+}
+
+import { useCallStateHooks } from "@stream-io/video-react-sdk";
+
+function MeetingUI({ call }: { call: any }) {
+  const router = useRouter();
+  const { useCallEndedAt } = useCallStateHooks();
+  const callEndedAt = useCallEndedAt();
+
+  useEffect(() => {
+    if (callEndedAt) {
+      router.back();
+    }
+  }, [callEndedAt, router]);
+
+  const handleLeave = async () => {
+    try {
+      // If we are the admin/officer, end the call for everyone
+      if (call.state.membership?.role === "admin") {
+        await call.endCall();
+      } else {
+        await call.leave();
+      }
+    } catch (err) {
+      console.error("Error ending/leaving call", err);
+    }
+    router.back();
+  };
+
+  return (
+    <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
+      <div className="flex-1 relative overflow-hidden flex items-center justify-center">
+        <PaginatedGridLayout groupSize={2} />
+      </div>
+      <div className="bg-slate-800 p-4 border-t border-slate-700 flex justify-center">
+        <CallControls onLeave={handleLeave} />
+      </div>
+    </div>
   );
 }
