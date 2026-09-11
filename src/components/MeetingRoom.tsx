@@ -33,16 +33,44 @@ export default function MeetingRoom({
   useEffect(() => {
     if (!client || !callId) return;
 
+    let isMounted = true;
     const myCall = client.call("default", callId);
-    
-    // We do NOT manually call myCall.join() here. 
-    // The <StreamCall call={myCall}> component automatically handles joining and publishing tracks 
-    // when it mounts. Doing it manually causes double video feeds (ghost participants).
-    setCall(myCall);
+
+    const joinMeeting = async () => {
+      try {
+        // Safely check if we are already in the call to prevent React StrictMode ghost participants
+        const currentState = myCall.state.callingState;
+        if (currentState !== "joined" && currentState !== "joining") {
+          await myCall.join({ create: true });
+        }
+        
+        if (isMounted) {
+          setCall(myCall);
+        }
+      } catch (err: any) {
+        console.error("Error joining call:", err);
+        if (isMounted) setError(err?.message || "Failed to join video call.");
+      }
+    };
+
+    if (client.state.connectedUser) {
+      joinMeeting();
+    } else {
+      // Wait for user to be connected before joining
+      const sub = client.state.connectedUser$.subscribe((user) => {
+        if (user) {
+          sub.unsubscribe();
+          joinMeeting();
+        }
+      });
+    }
 
     return () => {
-      // The call will be cleaned up by the user clicking Leave/End, 
-      // or if they navigate away, StreamCall will unmount and leave automatically.
+      isMounted = false;
+      // Clean up the call when we navigate away
+      if (myCall && myCall.state.callingState === "joined") {
+        myCall.leave().catch(() => {});
+      }
     };
   }, [client, callId]);
 
