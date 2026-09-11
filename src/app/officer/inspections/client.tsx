@@ -110,8 +110,8 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
         { id: selectedApp.userId, name: selectedApp.applicantName }
       ]);
 
-      // Use a consistent call ID based on the application to prevent duplicates
-      const callId = `inspection-${selectedApp.id}`;
+      // Generate a fresh unique call ID every time so previously ended calls don't block new rings
+      const callId = `inspection-${selectedApp.id}-${Date.now()}`;
       const call = client.call("default", callId);
 
       const members = [{ user_id: officerId, role: "admin" }];
