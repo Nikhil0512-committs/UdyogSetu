@@ -70,16 +70,25 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
   const dept = session?.department || "";
   const myApprovals = app.approvals.filter((a: any) => a.dept === dept || !dept);
 
-  // Department specific document mapping
+  // Department specific document mapping — includes both the approval names AND
+  // the required document names from the checklist generator so officers see
+  // documents uploaded during initial submission AND post-submission uploads
   const identityDocs = ["PAN card (Company/Proprietor)", "Aadhaar of Authorized Signatory", "Certificate of Incorporation / Udyam", "GST Registration Certificate"];
   
   const deptSpecificMap: Record<string, string[]> = {
-    "MPCB": ["Consent to Establish (Water & Air)", "Project Report / Manufacturing Process Details", "Site Layout Plan / Building Plan Drawing", "Land Ownership / Lease Allotment"],
-    "Fire Services Department": ["Provisional Fire NOC", "Site Layout Plan / Building Plan Drawing"],
-    "Labour Department": ["Shops & Establishment Registration"],
+    "MPCB": ["Consent to Establish (Water & Air)", "Pollution control equipment details", "Project Report / Manufacturing Process Details", "Site Layout Plan / Building Plan Drawing", "Land Ownership / Lease Allotment"],
+    "Fire Services Department": ["Provisional Fire NOC", "Site plan showing fire exits & hydrant layout", "Site Layout Plan / Building Plan Drawing"],
+    "Labour Department": ["Shops & Establishment Registration", "Employer details and worker roster"],
     "DISH / Labour Department": ["Registration under Factories Act", "Worker safety & health policy"],
     "Directorate of Industries": ["Project Report / Manufacturing Process Details", "Land Ownership / Lease Allotment"],
-    "MIDC": ["Factory Building Plan Approval", "Machinery layout & safety officer details"]
+    "MIDC": ["Factory Building Plan Approval", "Machinery layout & safety officer details"],
+    "Urban Local Body": ["Factory Building Plan Approval", "Machinery layout & safety officer details"],
+    "GSDA": ["Groundwater Extraction NOC", "Hydrogeological survey report"],
+    "Electrical Inspectorate": ["High-Tension Power Approval", "Electrical installation plan"],
+    "PESO / DISH": ["Hazardous Substance / Explosives License", "Hazardous-substance inventory and safety report"],
+    "MoEFCC / MCZMA": ["CRZ (Coastal Regulation Zone) Clearance", "CRZ mapping and site demarcation report"],
+    "Tribal Development Dept": ["Scheduled Area / Forest Clearance", "Forest land diversion proposal & tribal welfare plan"],
+    "Boiler Inspectorate": ["Boiler Installation & Operation License", "Boiler design drawings and safety certificate"],
   };
 
   const allowedDocTypes = dept ? [...identityDocs, ...(deptSpecificMap[dept] || [])] : null;
