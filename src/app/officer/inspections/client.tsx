@@ -62,6 +62,7 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
         newTime: time,
         reason,
         initiator: "OFFICER",
+        applicantId: selectedApp?.userId,
       });
       toast.success("Reschedule applied! The applicant has been notified.");
       setRescheduleOpen(false);
