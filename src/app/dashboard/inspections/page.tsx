@@ -324,17 +324,19 @@ export default function InspectionsPage() {
               <DialogTrigger className={buttonVariants({ variant: "outline", className: "w-full sm:flex-1 cursor-pointer bg-white" })}>
                 Reschedule
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50 flex-none">
+              <DialogContent className="sm:max-w-[700px] p-0 flex flex-col max-h-[85vh] overflow-hidden">
+                {/* Header (Fixed) */}
+                <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 bg-slate-50 flex-shrink-0">
                   <DialogTitle className="text-xl">Select a Date & Time</DialogTitle>
                   <DialogDescription className="mt-1">
                     Propose a new remote video verification slot. Government working hours are strictly between 10:00 AM and 5:00 PM.
                   </DialogDescription>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row flex-1 min-h-[350px] overflow-y-auto">
+                {/* Body (Scrollable) */}
+                <div className="flex-1 min-h-0 overflow-y-auto flex flex-col sm:flex-row">
                   {/* Left Pane: Custom Calendar */}
-                  <div className="flex-1 p-6 border-r border-slate-100">
+                  <div className="flex-1 p-4 sm:p-6 border-b sm:border-b-0 sm:border-r border-slate-100">
                     <div className="flex items-center justify-between mb-4">
                       <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-8 w-8"><ChevronLeft className="w-4 h-4" /></Button>
                       <h4 className="font-semibold text-slate-900">{monthNames[calMonth]} {calYear}</h4>
@@ -377,7 +379,7 @@ export default function InspectionsPage() {
                   </div>
                   
                   {/* Right Pane: Time Slots */}
-                  <div className="w-full sm:w-[280px] bg-slate-50 p-6 flex flex-col">
+                  <div className="w-full sm:w-[280px] bg-slate-50 p-4 sm:p-6 flex flex-col">
                     <h4 className="font-medium text-slate-900 mb-4 flex items-center gap-2">
                       <Clock className="w-4 h-4 text-slate-500" />
                       {date ? new Date(date).toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' }) : "Select a date"}
@@ -410,20 +412,23 @@ export default function InspectionsPage() {
                   </div>
                 </div>
 
-                {date && time && (
-                  <div className="px-6 py-4 border-t border-slate-100 bg-white flex-none">
-                    <Label htmlFor="reason" className="mb-2 block">Optional Reason for Rescheduling</Label>
-                    <Input id="reason" placeholder="e.g. Traveling out of station" value={reason} onChange={e => setReason(e.target.value)} />
+                {/* Footer (Fixed) */}
+                <div className="flex-shrink-0">
+                  {date && time && (
+                    <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-white">
+                      <Label htmlFor="reason" className="mb-2 block">Optional Reason for Rescheduling</Label>
+                      <Input id="reason" placeholder="e.g. Traveling out of station" value={reason} onChange={e => setReason(e.target.value)} />
+                    </div>
+                  )}
+                  
+                  <div className="p-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
+                    <Button type="button" variant="outline" onClick={() => setRescheduleOpen(false)} disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                    <Button type="button" onClick={handleRescheduleSubmit} disabled={isSubmitting || !date || !time} className="min-w-[140px]">
+                      {isSubmitting ? "Submitting..." : "Confirm Request"}
+                    </Button>
                   </div>
-                )}
-                
-                <div className="p-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50 flex-none">
-                  <Button type="button" variant="outline" onClick={() => setRescheduleOpen(false)} disabled={isSubmitting}>
-                    Cancel
-                  </Button>
-                  <Button type="button" onClick={handleRescheduleSubmit} disabled={isSubmitting || !date || !time} className="min-w-[140px]">
-                    {isSubmitting ? "Submitting..." : "Confirm Request"}
-                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
