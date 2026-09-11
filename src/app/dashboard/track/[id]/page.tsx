@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import PendingDocuments from "../pending-documents";
 
 export default async function TrackingPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
@@ -242,6 +243,55 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Department Documents — post-submission upload */}
+      {(() => {
+        // Map each approval's department to its required document type
+        const deptToDoc: Record<string, string> = {
+          "MIDC": "Machinery layout & safety officer details",
+          "Urban Local Body": "Machinery layout & safety officer details",
+          "MPCB": "Pollution control equipment details",
+          "Fire Services Department": "Site plan showing fire exits & hydrant layout",
+          "DISH / Labour Department": "Worker safety & health policy",
+          "GSDA": "Hydrogeological survey report",
+          "Electrical Inspectorate": "Electrical installation plan",
+          "PESO / DISH": "Hazardous-substance inventory and safety report",
+          "MoEFCC / MCZMA": "CRZ mapping and site demarcation report",
+          "Tribal Development Dept": "Forest land diversion proposal & tribal welfare plan",
+          "Labour Department": "Employer details and worker roster",
+          "Boiler Inspectorate": "Boiler design drawings and safety certificate",
+        };
+
+        // Get set of already-uploaded document types
+        const uploadedDocTypes = new Set(app.documents.map((d: any) => d.name));
+
+        // For each approval, check if its required document has been uploaded
+        const missingDocs = app.approvals
+          .map((a: any) => {
+            const requiredDoc = deptToDoc[a.dept];
+            if (!requiredDoc) return null;
+            if (uploadedDocTypes.has(requiredDoc)) return null;
+            return {
+              docType: requiredDoc,
+              department: a.dept,
+              approvalName: a.name,
+            };
+          })
+          .filter(Boolean) as { docType: string; department: string; approvalName: string }[];
+
+        // Deduplicate by docType (multiple approvals might need the same doc)
+        const seen = new Set<string>();
+        const uniqueMissingDocs = missingDocs.filter((d) => {
+          if (seen.has(d.docType)) return false;
+          seen.add(d.docType);
+          return true;
+        });
+
+        if (uniqueMissingDocs.length === 0 && !isApproved) return null;
+        if (isApproved) return null;
+
+        return <PendingDocuments applicationId={id} missingDocs={uniqueMissingDocs} />;
+      })()}
     </div>
   );
 }
