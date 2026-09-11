@@ -40,16 +40,18 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
   const client = useStreamVideoClient();
 
   React.useEffect(() => {
-    import("@/actions/inspections").then(({ fetchInspectionSchedule }) => {
-      fetchInspectionSchedule().then((s) => {
-        if (s) {
-          setSchedule(s);
-          setDate(s.date);
-          setTime(s.time);
-        }
+    if (selectedApp?.userId) {
+      import("@/actions/inspections").then(({ fetchInspectionSchedule }) => {
+        fetchInspectionSchedule(selectedApp.userId).then((s) => {
+          if (s) {
+            setSchedule(s);
+            setDate(s.date);
+            setTime(s.time);
+          }
+        });
       });
-    });
-  }, []);
+    }
+  }, [selectedApp?.userId]);
 
   const handleRescheduleSubmit = async () => {
     setIsSubmitting(true);
@@ -66,8 +68,10 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
       setReason("");
       
       const { fetchInspectionSchedule } = await import("@/actions/inspections");
-      const s = await fetchInspectionSchedule();
-      setSchedule(s);
+      if (selectedApp?.userId) {
+        const s = await fetchInspectionSchedule(selectedApp.userId);
+        setSchedule(s);
+      }
     } catch {
       toast.error("Failed to apply reschedule.");
     } finally {
@@ -76,16 +80,18 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
   };
 
   const handleApprove = async () => {
+    if (!selectedApp?.userId) return;
     const { approveReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
-    await approveReschedule();
-    const s = await fetchInspectionSchedule();
+    await approveReschedule(selectedApp.userId);
+    const s = await fetchInspectionSchedule(selectedApp.userId);
     setSchedule(s);
   };
 
   const handleReject = async () => {
+    if (!selectedApp?.userId) return;
     const { rejectReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
-    await rejectReschedule();
-    const s = await fetchInspectionSchedule();
+    await rejectReschedule(selectedApp.userId);
+    const s = await fetchInspectionSchedule(selectedApp.userId);
     setSchedule(s);
   };
 

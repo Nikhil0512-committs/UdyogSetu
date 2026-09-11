@@ -22,14 +22,23 @@ if (!globalAny.mockMeetingSchedule.status) {
 
 import { getSession } from "@/lib/auth";
 
-export async function fetchInspectionSchedule() {
+export async function fetchInspectionSchedule(applicantId?: string) {
   try {
     const session = await getSession();
     const isOfficer = session?.role === "OFFICER";
     
+    // Determine the query
+    let query: any = {};
+    if (isOfficer) {
+      if (applicantId) query.applicantId = applicantId;
+      else if (session?.department) query.department = session.department;
+    } else if (session?.userId) {
+      query.applicantId = session.userId;
+    }
+
     // Try to get from database first
     const inspection = await prisma.inspection.findFirst({
-      where: isOfficer && session?.department ? { department: session.department } : (session?.userId ? { applicantId: session.userId } : {}),
+      where: query,
       orderBy: { createdAt: "desc" },
       include: { applicant: true }
     });
@@ -185,13 +194,21 @@ export async function requestReschedule(payload: RescheduleRequest) {
   return { success: true };
 }
 
-export async function approveReschedule() {
+export async function approveReschedule(applicantId?: string) {
   try {
     const session = await getSession();
     const isOfficer = session?.role === "OFFICER";
 
+    let query: any = {};
+    if (isOfficer) {
+      if (applicantId) query.applicantId = applicantId;
+      else if (session?.department) query.department = session.department;
+    } else if (session?.userId) {
+      query.applicantId = session.userId;
+    }
+
     const inspection = await prisma.inspection.findFirst({
-      where: isOfficer && session?.department ? { department: session.department } : (session?.userId ? { applicantId: session.userId } : {}),
+      where: query,
       orderBy: { createdAt: "desc" },
     });
 
@@ -236,13 +253,21 @@ export async function approveReschedule() {
   return { success: true };
 }
 
-export async function rejectReschedule() {
+export async function rejectReschedule(applicantId?: string) {
   try {
     const session = await getSession();
     const isOfficer = session?.role === "OFFICER";
 
+    let query: any = {};
+    if (isOfficer) {
+      if (applicantId) query.applicantId = applicantId;
+      else if (session?.department) query.department = session.department;
+    } else if (session?.userId) {
+      query.applicantId = session.userId;
+    }
+
     const inspection = await prisma.inspection.findFirst({
-      where: isOfficer && session?.department ? { department: session.department } : (session?.userId ? { applicantId: session.userId } : {}),
+      where: query,
       orderBy: { createdAt: "desc" },
     });
 
