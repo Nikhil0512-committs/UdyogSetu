@@ -152,7 +152,14 @@ function MeetingUI({ call }: { call: any }) {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-900 text-white flex flex-col">
+    <div className="h-screen w-full bg-slate-900 text-white flex flex-col relative">
+      {/* Diagnostic Badge to prove cookie identity */}
+      <div className="absolute top-4 left-4 z-50 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono border border-white/10 flex items-center gap-2">
+        <span className={call.state.membership?.role === "admin" ? "text-blue-400" : "text-emerald-400"}>
+          You joined as: {call.state.membership?.role === "admin" ? "Officer" : "Applicant"}
+        </span>
+      </div>
+
       <div className="flex-1 relative overflow-hidden flex items-center justify-center">
         <PaginatedGridLayout groupSize={2} />
       </div>
