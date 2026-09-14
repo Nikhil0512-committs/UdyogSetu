@@ -355,7 +355,7 @@ export default function InspectionsPage() {
 
       
       {jointInspections.length === 0 && schedule && (
-        <div className="max-w-3xl">
+        <div className="grid gap-6 lg:grid-cols-2">
           {/* Section 2: Remote/Video Verification */}
         <Card className="flex flex-col h-full border-blue-200 shadow-sm">
           <CardHeader className="pb-3 border-b border-slate-100">
