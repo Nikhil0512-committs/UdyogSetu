@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="text-center mb-8">
-          <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
+          <Image src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" width={200} height={64} className="h-16 w-auto object-contain mx-auto mb-4" priority />
           <h1 className="text-2xl font-bold text-slate-900">Register Business</h1>
           <p className="text-slate-500 mt-2">Create your single-window profile</p>
         </div>

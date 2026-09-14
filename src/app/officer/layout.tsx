@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import PillLanguageToggle from "@/components/pill-language-toggle";
@@ -12,7 +13,7 @@ export default async function OfficerLayout({ children }: { children: React.Reac
       <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-10 text-white">
         <div className="flex items-center gap-4">
           <Link href="/officer/dashboard" className="transition-opacity hover:opacity-80">
-            <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-8 w-auto object-contain bg-white rounded p-1" />
+            <Image src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" width={128} height={32} className="h-8 w-auto object-contain bg-white rounded p-1" priority />
           </Link>
           <div>
             <span className="text-lg font-bold block">Officer Portal</span>

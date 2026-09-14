@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DashboardNav } from "@/components/dashboard-nav";
 import NotificationsMenu from "@/components/notifications-menu";
@@ -16,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-            <img src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" className="h-8 w-auto object-contain" />
+            <Image src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" width={128} height={32} className="h-8 w-auto object-contain" priority />
           </Link>
         </div>
         <div className="flex items-center gap-6">
