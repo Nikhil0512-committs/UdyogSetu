@@ -353,105 +353,10 @@ export default function InspectionsPage() {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Section 1: Coordinated Inspections (Untouched structure) */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-xl flex items-center gap-2 text-slate-900">
-                  <Calendar className="h-5 w-5 text-indigo-600" />
-                  Upcoming Coordinated Inspections
-                </CardTitle>
-                <CardDescription>
-                  Multiple departments visiting on the same date
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                Scheduled
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-slate-50 p-4">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-semibold text-slate-900">Joint Factory Inspection</h3>
-                  <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
-                    <Clock className="h-4 w-4" /> 15 Oct 2026, 10:00 AM - 02:00 PM
-                  </p>
-                  <p className="text-sm text-slate-600 mt-1 flex items-center gap-1">
-                    <MapPin className="h-4 w-4" /> Unit 4, MIDC Industrial Area
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Participating Departments:
-                </h4>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between bg-white p-2 rounded border text-sm">
-                    <span className="flex items-center gap-2 font-medium text-slate-700">
-                      <Building2 className="h-4 w-4 text-emerald-600" />
-                      MPCB (Pollution Control Board)
-                    </span>
-                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-                      Confirmed
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between bg-white p-2 rounded border text-sm">
-                    <span className="flex items-center gap-2 font-medium text-slate-700">
-                      <Building2 className="h-4 w-4 text-orange-600" />
-                      Fire Department
-                    </span>
-                    <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-50">
-                      Confirmed
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Dialog open={reqOpen} onOpenChange={setReqOpen}>
-              <DialogTrigger className={buttonVariants({ className: "w-full bg-slate-900 hover:bg-slate-800 text-white cursor-pointer" })}>
-                View Inspection Requirements
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Site Preparation Checklist</DialogTitle>
-                  <DialogDescription>
-                    Please ensure the following are ready before the joint inspection on 15 Oct 2026.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <h4 className="font-semibold text-emerald-700 flex items-center gap-2 mb-2"><Building2 className="w-4 h-4"/> MPCB Requirements</h4>
-                    <ul className="text-sm space-y-2 text-slate-600 ml-6 list-disc">
-                      <li>Effluent Treatment Plant (ETP) logbooks updated.</li>
-                      <li>Hazardous waste disposal manifests ready for review.</li>
-                      <li>Ambient air quality monitoring report (last 3 months).</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-orange-700 flex items-center gap-2 mb-2"><Building2 className="w-4 h-4"/> Fire Dept Requirements</h4>
-                    <ul className="text-sm space-y-2 text-slate-600 ml-6 list-disc">
-                      <li>Fire extinguishers unblocked and recently serviced.</li>
-                      <li>Evacuation map prominently displayed on all floors.</li>
-                      <li>Hydrant pump system test logs available.</li>
-                    </ul>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={() => setReqOpen(false)} className="w-full">Understood</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardFooter>
-        </Card>
-
-        {/* Section 2: Remote/Video Verification */}
+      
+      {jointInspections.length === 0 && schedule && (
+        <div className="max-w-3xl">
+          {/* Section 2: Remote/Video Verification */}
         <Card className="flex flex-col h-full border-blue-200 shadow-sm">
           <CardHeader className="pb-3 border-b border-slate-100">
              <div className="flex items-center justify-between">
@@ -538,7 +443,37 @@ export default function InspectionsPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100 bg-slate-50/50">
-            <Dialog open={rescheduleOpen} onOpenChange={(open) => {
+            
+            
+            {/* Upgraded Active Standby Button */}
+            {schedule.status === "RESCHEDULE_REQUESTED" ? (
+               <Button 
+                disabled
+                className="w-full sm:flex-1 bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed flex gap-2 justify-center"
+              >
+                <Clock className="h-4 w-4" />
+                Locked for Review
+              </Button>
+            ) : (
+              <Button 
+                variant="outline"
+                className="w-full sm:flex-1 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 flex gap-2 justify-center relative overflow-hidden group"
+              >
+                {/* Animated pulsing dot */}
+                <span className="relative flex h-3 w-3 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
+                </span>
+                
+                System Online: Awaiting Officer&apos;s Call
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+        </div>
+      )}
+
+      <Dialog open={rescheduleOpen} onOpenChange={(open) => {
               setRescheduleOpen(open);
               if (!open) setActiveRescheduleId(null);
             }}>
@@ -661,33 +596,6 @@ export default function InspectionsPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            
-            {/* Upgraded Active Standby Button */}
-            {schedule.status === "RESCHEDULE_REQUESTED" ? (
-               <Button 
-                disabled
-                className="w-full sm:flex-1 bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed flex gap-2 justify-center"
-              >
-                <Clock className="h-4 w-4" />
-                Locked for Review
-              </Button>
-            ) : (
-              <Button 
-                variant="outline"
-                className="w-full sm:flex-1 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 flex gap-2 justify-center relative overflow-hidden group"
-              >
-                {/* Animated pulsing dot */}
-                <span className="relative flex h-3 w-3 mr-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
-                </span>
-                
-                System Online: Awaiting Officer&apos;s Call
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
     </div>
   );
 }
