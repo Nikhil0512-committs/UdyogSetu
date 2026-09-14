@@ -28,9 +28,9 @@ export default async function OfficerLayout({ children }: { children: React.Reac
               </div>
             </div>
             <div className="relative group flex items-center">
-              <Link href="/officer/inspections" className="text-sm font-medium text-slate-300 hover:text-white py-2">Video Inspections</Link>
+              <Link href="/officer/inspections" className="text-sm font-medium text-slate-300 hover:text-white py-2">Joint Inspections</Link>
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block w-56 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-50 text-center pointer-events-none">
-                Conduct scheduled remote site verifications via video call.
+                Start or join multi-department coordinated video inspections.
               </div>
             </div>
           </nav>

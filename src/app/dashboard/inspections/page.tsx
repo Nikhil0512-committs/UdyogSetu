@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -12,7 +11,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Calendar, Video, CheckCircle2, Clock, MapPin, Building2, Users, Check, ChevronLeft, ChevronRight, VideoIcon } from "lucide-react";
+import {
+  Calendar, Video, CheckCircle2, Clock, MapPin, Building2,
+  Users, Check, ChevronLeft, ChevronRight, Shield,
+  PartyPopper, AlertTriangle, Loader2
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { JointInspectionSession } from "@/lib/mock-data";
 
 export default function InspectionsPage() {
   const [rescheduleOpen, setRescheduleOpen] = React.useState(false);
@@ -38,10 +42,13 @@ export default function InspectionsPage() {
   });
   const [date, setDate] = React.useState(schedule.date);
   const [time, setTime] = React.useState(schedule.time);
-
   const [reason, setReason] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
+
+  // Joint inspection state
+  const [jointInspections, setJointInspections] = React.useState<JointInspectionSession[]>([]);
+  const [loadingJI, setLoadingJI] = React.useState(true);
+
   // Custom Calendar state (Defaulting to September 2026)
   const [calMonth, setCalMonth] = React.useState(8); // 0-indexed (8 = September)
   const [calYear, setCalYear] = React.useState(2026);
@@ -54,6 +61,24 @@ export default function InspectionsPage() {
         setTime(s.time);
       });
     });
+
+    // Fetch joint inspections for the applicant
+    import("@/actions/joint-inspection").then(({ fetchJointInspections }) => {
+      fetchJointInspections().then((inspections) => {
+        setJointInspections(inspections);
+        setLoadingJI(false);
+      }).catch(() => setLoadingJI(false));
+    });
+  }, []);
+
+  // Poll joint inspections every 5s
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      import("@/actions/joint-inspection").then(({ fetchJointInspections }) => {
+        fetchJointInspections().then(setJointInspections).catch(() => {});
+      });
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleRescheduleSubmit = async () => {
@@ -124,6 +149,13 @@ export default function InspectionsPage() {
     return `${h12}:${m} ${ampm}`;
   };
 
+  const deptDecisionIcon = (decision: string | null) => {
+    if (!decision) return <Clock className="h-4 w-4 text-slate-400" />;
+    if (decision === "APPROVED") return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+    if (decision === "REJECTED") return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    return <Clock className="h-4 w-4 text-amber-500" />;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -134,6 +166,142 @@ export default function InspectionsPage() {
           Manage your coordinated inspection planning and remote/video verifications.
         </p>
       </div>
+
+      {/* ── Joint Inspection Status Cards ── */}
+      {jointInspections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Users className="h-5 w-5 text-indigo-600" />
+            Joint Multi-Department Inspections
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {jointInspections.map(ji => {
+              const approvedCount = ji.departments.filter(d => d.decision === "APPROVED").length;
+              const totalDepts = ji.departments.length;
+              const allApproved = approvedCount === totalDepts;
+              const anyRejected = ji.departments.some(d => d.decision === "REJECTED");
+              const progress = totalDepts > 0 ? (ji.departments.filter(d => d.decision !== null).length / totalDepts) * 100 : 0;
+
+              return (
+                <Card key={ji.id} className={`border-2 transition-all ${
+                  allApproved ? "border-emerald-300 bg-emerald-50/50" :
+                  anyRejected ? "border-red-200 bg-red-50/30" :
+                  ji.status === "IN_PROGRESS" ? "border-blue-300 bg-blue-50/30 shadow-md" :
+                  "border-slate-200"
+                }`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-indigo-600" />
+                        {ji.applicationId}
+                      </CardTitle>
+                      <Badge variant="outline" className={
+                        ji.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                        ji.status === "IN_PROGRESS" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                        "bg-amber-50 text-amber-700 border-amber-200"
+                      }>
+                        {ji.status === "IN_PROGRESS" && (
+                          <span className="relative flex h-2 w-2 mr-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                          </span>
+                        )}
+                        {ji.status.replace("_", " ")}
+                      </Badge>
+                    </div>
+                    <CardDescription className="flex items-center gap-2 text-xs">
+                      <Clock className="h-3 w-3" />
+                      {ji.scheduledFormatted}
+                      <span className="mx-1">•</span>
+                      Lead: {ji.leadDepartment}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* All Approved Celebration */}
+                    {allApproved && (
+                      <div className="bg-emerald-100 border border-emerald-200 rounded-lg p-3 flex items-center gap-3">
+                        <PartyPopper className="h-5 w-5 text-emerald-600" />
+                        <div>
+                          <p className="text-sm font-bold text-emerald-800">All Departments Approved! 🎉</p>
+                          <p className="text-xs text-emerald-600">Your application has been cleared by all departments.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Department Status List */}
+                    <div className="space-y-1.5">
+                      {ji.departments.map((dept, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm bg-white p-2.5 rounded-lg border border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <Building2 className={`h-4 w-4 ${
+                              dept.decision === "APPROVED" ? "text-emerald-500" :
+                              dept.decision === "REJECTED" ? "text-red-500" :
+                              dept.joined ? "text-blue-500" :
+                              "text-slate-400"
+                            }`} />
+                            <span className="font-medium text-slate-700">{dept.department}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {deptDecisionIcon(dept.decision)}
+                            <span className={`text-xs font-semibold ${
+                              dept.decision === "APPROVED" ? "text-emerald-600" :
+                              dept.decision === "REJECTED" ? "text-red-600" :
+                              dept.decision === "QUERIED" ? "text-amber-600" :
+                              dept.joined ? "text-blue-600" :
+                              "text-slate-400"
+                            }`}>
+                              {dept.decision || (dept.joined ? "Connected" : ji.status === "IN_PROGRESS" ? "Ringing..." : "Pending")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div>
+                      <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                        <span>Progress</span>
+                        <span>{approvedCount}/{totalDepts} approved</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            allApproved ? "bg-emerald-500" : anyRejected ? "bg-red-500" : "bg-blue-500"
+                          }`}
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    {ji.status === "IN_PROGRESS" && (
+                      <div className="w-full">
+                        <Button 
+                          variant="outline"
+                          className="w-full border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 flex gap-2 justify-center relative overflow-hidden"
+                        >
+                          <span className="relative flex h-3 w-3 mr-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
+                          </span>
+                          Live: Awaiting Officer&apos;s Call
+                        </Button>
+                      </div>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {loadingJI && (
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading joint inspections...
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Section 1: Coordinated Inspections (Untouched structure) */}
@@ -233,7 +401,7 @@ export default function InspectionsPage() {
           </CardFooter>
         </Card>
 
-        {/* Section 2: Remote/Video Verification (Upgraded) */}
+        {/* Section 2: Remote/Video Verification */}
         <Card className="flex flex-col h-full border-blue-200 shadow-sm">
           <CardHeader className="pb-3 border-b border-slate-100">
              <div className="flex items-center justify-between">
@@ -453,7 +621,7 @@ export default function InspectionsPage() {
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
                 </span>
                 
-                System Online: Awaiting Officer's Call
+                System Online: Awaiting Officer&apos;s Call
               </Button>
             )}
           </CardFooter>

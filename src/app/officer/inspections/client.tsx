@@ -3,204 +3,195 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Video, CheckCircle2, Clock, User, ChevronRight, Check } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Video, CheckCircle2, Clock, User, ChevronRight,
+  Building2, Users, Phone, Shield, AlertTriangle,
+  PlayCircle, Loader2
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
+import type { JointInspectionSession } from "@/lib/mock-data";
 
-interface EligibleApp {
-  id: string;
-  userId: string;
-  companyName: string;
-  applicantName: string;
-  riskCategory: string;
-  riskScore: number;
+interface Props {
+  officerId: string;
+  department: string;
+  jointInspections: JointInspectionSession[];
+  isLeadOfficer: boolean;
 }
 
-export default function OfficerInspectionsClient({ officerId, department, eligibleApps, canVideoCall }: { officerId: string; department: string; eligibleApps: EligibleApp[]; canVideoCall: boolean }) {
-  const [selectedApp, setSelectedApp] = useState<EligibleApp | null>(eligibleApps[0] || null);
-  
-  const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [schedule, setSchedule] = useState<any>({
-    date: "2026-09-20",
-    time: "15:00",
-    formatted: "20 Sep 2026, 03:00 PM",
-    status: "SCHEDULED"
-  });
-  const [date, setDate] = useState(schedule.date);
-  const [time, setTime] = useState(schedule.time);
-  const [reason, setReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCalling, setIsCalling] = useState(false);
+export default function OfficerInspectionsClient({ officerId, department, jointInspections, isLeadOfficer }: Props) {
+  const [selectedInspection, setSelectedInspection] = useState<JointInspectionSession | null>(jointInspections[0] || null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const router = useRouter();
   const client = useStreamVideoClient();
 
-  React.useEffect(() => {
-    if (selectedApp?.userId) {
-      import("@/actions/inspections").then(({ fetchInspectionSchedule }) => {
-        fetchInspectionSchedule(selectedApp.userId).then((s) => {
-          if (s) {
-            setSchedule(s);
-            setDate(s.date);
-            setTime(s.time);
-          }
-        });
-      });
-    }
-  }, [selectedApp?.userId]);
-
-  const handleRescheduleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const { requestReschedule } = await import("@/actions/inspections");
-      await requestReschedule({
-        newDate: date,
-        newTime: time,
-        reason,
-        initiator: "OFFICER",
-        applicantId: selectedApp?.userId,
-      });
-      toast.success("Reschedule applied! The applicant has been notified.");
-      setRescheduleOpen(false);
-      setReason("");
-      
-      const { fetchInspectionSchedule } = await import("@/actions/inspections");
-      if (selectedApp?.userId) {
-        const s = await fetchInspectionSchedule(selectedApp.userId);
-        setSchedule(s);
-      }
-    } catch {
-      toast.error("Failed to apply reschedule.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!selectedApp?.userId) return;
-    const { approveReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
-    await approveReschedule(selectedApp.userId);
-    const s = await fetchInspectionSchedule(selectedApp.userId);
-    setSchedule(s);
-  };
-
-  const handleReject = async () => {
-    if (!selectedApp?.userId) return;
-    const { rejectReschedule, fetchInspectionSchedule } = await import("@/actions/inspections");
-    await rejectReschedule(selectedApp.userId);
-    const s = await fetchInspectionSchedule(selectedApp.userId);
-    setSchedule(s);
-  };
-
-  const handleCallApplicant = async () => {
-    if (!client) {
-      toast.error("Video client is still initializing. Please wait a moment.");
-      return;
-    }
-    
-    if (!selectedApp || !selectedApp.userId) {
-      toast.error("Please select a valid applicant from the list.");
-      return;
-    }
-
-    setIsCalling(true);
-    try {
-      // Stream requires all call members to be explicitly upserted in its DB
-      // before they can be added to a call. We do this server-side first.
-      const { ensureStreamUsers } = await import("@/actions/stream");
-      await ensureStreamUsers([
-        { id: officerId, name: "Officer" },
-        { id: selectedApp.userId, name: selectedApp.applicantName }
-      ]);
-
-      // Generate a fresh unique call ID every time so previously ended calls don't block new rings
-      const callId = `inspection-${selectedApp.id}-${Date.now()}`;
-      const call = client.call("default", callId);
-
-      const members = [{ user_id: officerId, role: "admin" }];
-      // Add the specific applicant's user ID to the call
-      if (officerId !== selectedApp.userId) {
-        members.push({ user_id: selectedApp.userId, role: "user" });
-      }
-
-      await call.getOrCreate({ ring: true, data: { members } });
-      toast.success(`Ringing ${selectedApp.applicantName}...`);
-      router.push(`/meeting/${callId}`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(`Call failed: ${err?.message ?? "Unknown error"}`);
-    } finally {
-      setIsCalling(false);
-    }
-  };
+  const isLeadForSelected = selectedInspection?.leadOfficerId === officerId;
+  const myDeptInSelected = selectedInspection?.departments.find(d => d.department === department);
 
   const riskColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800 border-red-200",
     Orange: "bg-orange-100 text-orange-800 border-orange-200",
     Green: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    White: "bg-slate-100 text-slate-700 border-slate-200",
   };
 
-  const isSelectedAppGreen = selectedApp?.riskCategory === "Green" || selectedApp?.riskCategory === "White";
+  const statusColors: Record<string, string> = {
+    PENDING: "bg-amber-100 text-amber-800 border-amber-200",
+    IN_PROGRESS: "bg-blue-100 text-blue-800 border-blue-200",
+    COMPLETED: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    CANCELLED: "bg-slate-100 text-slate-500 border-slate-200",
+  };
+
+  const deptDecisionIcon = (decision: string | null) => {
+    if (!decision) return <Clock className="h-4 w-4 text-slate-400" />;
+    if (decision === "APPROVED") return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+    if (decision === "REJECTED") return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    return <Clock className="h-4 w-4 text-amber-500" />;
+  };
+
+  const handleStartJointInspection = async () => {
+    if (!client || !selectedInspection) return;
+    setIsStarting(true);
+
+    try {
+      // 1. Call server action to prepare the call and upsert users
+      const { startJointInspectionCall, getJointInspectionCallMembers } = await import("@/actions/joint-inspection");
+      const { callId } = await startJointInspectionCall(selectedInspection.id);
+
+      // 2. Get call members
+      const { members } = await getJointInspectionCallMembers(selectedInspection.id);
+
+      // 3. Create the Stream call with ring:true so all officers get the incoming call modal
+      const call = client.call("default", callId);
+      await call.getOrCreate({ ring: true, data: { members } });
+
+      toast.success("Joint Inspection started! Ringing all department officers...");
+      setConfirmDialogOpen(false);
+
+      // 4. Navigate to the meeting room
+      router.push(`/meeting/${callId}`);
+    } catch (err: any) {
+      console.error("Failed to start joint inspection:", err);
+      toast.error(`Failed to start: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleJoinInspection = async () => {
+    if (!client || !selectedInspection || !selectedInspection.streamCallId) return;
+    setIsJoining(true);
+
+    try {
+      // Mark this department as joined
+      const { joinJointInspection } = await import("@/actions/joint-inspection");
+      await joinJointInspection(selectedInspection.id);
+
+      // Navigate to the existing call
+      router.push(`/meeting/${selectedInspection.streamCallId}`);
+    } catch (err: any) {
+      toast.error(`Failed to join: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Remote Verifications Queue</h1>
-        <p className="text-slate-600 mt-2">Select an applicant from your queue to manage their inspection and initiate a video call.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Joint Inspections</h1>
+        <p className="text-slate-600 mt-2">
+          Coordinated multi-department video inspections — one visit, all approvals.
+        </p>
+      </div>
+
+      {/* Info Banner */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Users className="h-5 w-5 text-blue-600" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-blue-900 text-sm">How Joint Inspections Work</h3>
+          <p className="text-blue-700 text-xs mt-1 leading-relaxed">
+            The <strong>Lead Officer</strong> visits the factory site and starts a multi-party video call.
+            All required department officers are rung simultaneously and join the same call.
+            Each department can approve, reject, or query directly during the call — saving time for everyone.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-12">
-        {/* Left Card: Applications Queue (Selectable List) */}
+        {/* Left Panel: Inspection Queue */}
         <Card className="flex flex-col h-full md:col-span-5 lg:col-span-4 border-slate-200 shadow-sm">
           <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
             <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
-              <User className="h-5 w-5 text-indigo-600" />
-              Your Department Queue
+              <Shield className="h-5 w-5 text-indigo-600" />
+              Inspection Queue
             </CardTitle>
-            <CardDescription className="text-xs">Applicants waiting for {department || "your"} verification</CardDescription>
+            <CardDescription className="text-xs">
+              Joint inspections involving {department || "your department"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0 flex-grow overflow-y-auto">
-            {eligibleApps.length === 0 ? (
+            {jointInspections.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
-                <p className="font-medium">No applications</p>
+                <Users className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                <p className="font-medium">No inspections scheduled</p>
+                <p className="text-xs text-slate-400 mt-1">Joint inspections will appear here</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {eligibleApps.map(app => {
-                  const needsManual = app.riskCategory === "Red" || app.riskCategory === "Orange";
-                  const isSelected = selectedApp?.id === app.id;
-                  
+                {jointInspections.map(ji => {
+                  const isSelected = selectedInspection?.id === ji.id;
+                  const isLead = ji.leadOfficerId === officerId;
+                  const deptCount = ji.departments.length;
+                  const approvedCount = ji.departments.filter(d => d.decision === "APPROVED").length;
+
                   return (
-                    <div 
-                      key={app.id} 
-                      onClick={() => setSelectedApp(app)}
-                      className={`p-4 cursor-pointer transition-colors relative flex items-center justify-between
+                    <div
+                      key={ji.id}
+                      onClick={() => setSelectedInspection(ji)}
+                      className={`p-4 cursor-pointer transition-colors relative
                         ${isSelected ? 'bg-indigo-50 border-l-4 border-l-indigo-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'}
                       `}
                     >
-                      <div className="pr-4">
+                      <div className="pr-6">
                         <p className={`font-bold text-sm ${isSelected ? 'text-indigo-900' : 'text-slate-900'}`}>
-                          {app.companyName}
+                          {ji.companyName}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {app.applicantName}
+                          {ji.applicantName} • {ji.applicationId}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${riskColors[app.riskCategory] || riskColors.Green}`}>
-                            {app.riskCategory} Risk
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${riskColors[ji.riskCategory] || riskColors.Green}`}>
+                            {ji.riskCategory}
                           </span>
-                          {needsManual ? (
-                            <Badge className="bg-red-100 text-red-800 border-red-200 text-[9px]">Manual Only</Badge>
-                          ) : (
-                            <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Video Ready</Badge>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusColors[ji.status]}`}>
+                            {ji.status.replace("_", " ")}
+                          </span>
+                          {isLead && (
+                            <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200 text-[9px]">
+                              Lead Officer
+                            </Badge>
                           )}
                         </div>
+                        <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
+                          <Users className="h-3 w-3" />
+                          <span>{approvedCount}/{deptCount} approved</span>
+                          <span className="mx-1">•</span>
+                          <Clock className="h-3 w-3" />
+                          <span>{ji.scheduledFormatted}</span>
+                        </div>
                       </div>
-                      {isSelected && <ChevronRight className="h-5 w-5 text-indigo-400 absolute right-4" />}
+                      {isSelected && <ChevronRight className="h-5 w-5 text-indigo-400 absolute right-4 top-1/2 -translate-y-1/2" />}
                     </div>
                   );
                 })}
@@ -209,12 +200,12 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
           </CardContent>
         </Card>
 
-        {/* Right Card: Action Panel (Video Verification details) */}
+        {/* Right Panel: Inspection Detail */}
         <Card className="flex flex-col h-full md:col-span-7 lg:col-span-8 border-slate-200 shadow-sm">
-          {!selectedApp ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-slate-400">
+          {!selectedInspection ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-slate-400">
               <Video className="h-12 w-12 mb-4 text-slate-200" />
-              <p>Select an applicant from the queue to view details.</p>
+              <p>Select an inspection from the queue.</p>
             </div>
           ) : (
             <>
@@ -223,166 +214,257 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
                   <div className="space-y-1">
                     <CardTitle className="text-xl flex items-center gap-2 text-slate-900">
                       <Video className="h-5 w-5 text-blue-600" />
-                      Verification Room
+                      Joint Inspection Room
                     </CardTitle>
                     <CardDescription>
-                      Applicant: <span className="font-semibold text-slate-700">{selectedApp.companyName}</span>
+                      <span className="font-semibold text-slate-700">{selectedInspection.companyName}</span>
+                      {" — "}
+                      <span className="text-slate-500">{selectedInspection.applicantName}</span>
                     </CardDescription>
                   </div>
-                  <Badge variant="outline" className={isSelectedAppGreen ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}>
-                    {isSelectedAppGreen ? "Clear for Video Call" : "Physical Visit Required"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {isLeadForSelected && (
+                      <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
+                        <Shield className="h-3 w-3 mr-1" />
+                        You are Lead
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className={statusColors[selectedInspection.status]}>
+                      {selectedInspection.status.replace("_", " ")}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4 flex-grow pt-6">
+              <CardContent className="space-y-5 flex-grow pt-6 overflow-y-auto">
+                {/* Inspection Info */}
                 <div className="rounded-lg border bg-slate-50 p-5">
-                  <h3 className="font-semibold text-slate-900 text-lg">
-                    {isSelectedAppGreen ? "Low-Risk Self-Certification Review" : "High-Risk Compliance Inspection"}
+                  <h3 className="font-semibold text-slate-900 text-lg flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-indigo-600" />
+                    Multi-Department Coordinated Inspection
                   </h3>
-                  
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Representative</p>
-                      <p className="text-sm font-medium text-slate-800 flex items-center gap-2">
-                        <User className="h-4 w-4 text-indigo-500" /> {selectedApp.applicantName}
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Lead Department</p>
+                      <p className="text-sm font-medium text-slate-800">
+                        {selectedInspection.leadDepartment}
+                        {isLeadForSelected && " (You)"}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Scheduled For</p>
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Scheduled</p>
                       <p className="text-sm font-medium text-slate-800 flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-500" /> {schedule.formatted}
+                        <Clock className="h-4 w-4 text-blue-500" />
+                        {selectedInspection.scheduledFormatted}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Application</p>
+                      <p className="text-sm font-medium text-slate-800">{selectedInspection.applicationId}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Risk Category</p>
+                      <p className="text-sm font-medium">
+                        <span className={`px-2 py-0.5 rounded-full text-xs border ${riskColors[selectedInspection.riskCategory]}`}>
+                          {selectedInspection.riskCategory}
+                        </span>
                       </p>
                     </div>
                   </div>
+                </div>
 
-                  <div className="space-y-3 mt-6 pt-6 border-t border-slate-200">
-                    <h4 className="text-sm font-bold text-slate-900">Officer Verification Checklist:</h4>
-                    <ul className="space-y-2">
-                      <li className="flex items-start gap-2.5 text-sm text-slate-600">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
-                        <span>Verify the applicant is physically at the registered office premises.</span>
-                      </li>
-                      <li className="flex items-start gap-2.5 text-sm text-slate-600">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
-                        <span>Instruct them to show original documents matching the self-certification on camera.</span>
-                      </li>
-                      <li className="flex items-start gap-2.5 text-sm text-slate-600">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
-                        <span>Confirm geolocation coordinates if possible during the call.</span>
-                      </li>
-                    </ul>
-                  </div>
+                {/* Department Participants Panel */}
+                <div className="rounded-lg border bg-white p-5">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+                    <Users className="h-4 w-4 text-indigo-500" />
+                    Department Participants ({selectedInspection.departments.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedInspection.departments.map((dept, i) => {
+                      const isMyDept = dept.department === department;
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                            isMyDept
+                              ? "bg-indigo-50 border-indigo-200"
+                              : "bg-slate-50 border-slate-200"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              dept.joined ? "bg-emerald-100" : "bg-slate-100"
+                            }`}>
+                              <Building2 className={`h-4 w-4 ${dept.joined ? "text-emerald-600" : "text-slate-400"}`} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                {dept.department}
+                                {isMyDept && (
+                                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-semibold">
+                                    Your Dept
+                                  </span>
+                                )}
+                                {dept.department === selectedInspection.leadDepartment && (
+                                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">
+                                    Lead
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {dept.officerName || "Officer unassigned"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {dept.decision ? (
+                              <div className="flex items-center gap-1.5">
+                                {deptDecisionIcon(dept.decision)}
+                                <span className={`text-xs font-semibold ${
+                                  dept.decision === "APPROVED" ? "text-emerald-700" :
+                                  dept.decision === "REJECTED" ? "text-red-700" :
+                                  "text-amber-700"
+                                }`}>
+                                  {dept.decision}
+                                </span>
+                              </div>
+                            ) : dept.joined ? (
+                              <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">
+                                <span className="relative flex h-2 w-2 mr-1">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                                </span>
+                                Connected
+                              </Badge>
+                            ) : selectedInspection.status === "IN_PROGRESS" ? (
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] animate-pulse">
+                                <Phone className="h-3 w-3 mr-1" />
+                                Ringing...
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-slate-50 text-slate-500 border-slate-200 text-[10px]">
+                                Waiting
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
 
-                  {schedule.status === "RESCHEDULE_REQUESTED" && schedule.initiator === "APPLICANT" && (
-                    <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-inner">
-                      <h4 className="text-sm font-bold text-slate-900 mb-4">Applicant Requested Reschedule</h4>
-                      <p className="text-sm text-slate-700 mb-6 bg-amber-50 p-3 rounded border border-amber-100">
-                        Proposed time: <strong className="font-semibold text-amber-900">{schedule.proposedFormatted}</strong>
-                        <br/>
-                        <span className="opacity-90">Reason: {schedule.reason || "None provided"}</span>
-                      </p>
-                      
-                      {/* Animated Stepper for Pending Request */}
-                      <div className="flex items-center justify-between relative px-2 mb-6">
-                        <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-slate-200 -z-10 -translate-y-1/2"></div>
-                        
-                        {/* Step 1: Requested */}
-                        <div className="flex flex-col items-center gap-2 z-10">
-                           <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                             <Check className="w-4 h-4"/>
-                           </div>
-                           <span className="text-emerald-700 font-medium text-xs text-center w-20">Requested<br/><span className="font-normal">{schedule.proposedFormatted?.split(',')[0]}</span></span>
+                    {/* Applicant row */}
+                    <div className="flex items-center justify-between p-3 rounded-lg border bg-amber-50 border-amber-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                          <User className="h-4 w-4 text-amber-600" />
                         </div>
-                        
-                        {/* Step 2: Pending Officer */}
-                        <div className="flex flex-col items-center gap-2 z-10">
-                           <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md ring-4 ring-blue-100 animate-pulse">
-                             <User className="w-4 h-4"/>
-                           </div>
-                           <span className="text-blue-700 font-bold text-xs animate-pulse text-center w-24">Your Action<br/>Required</span>
-                        </div>
-                        
-                        {/* Step 3: Confirmed (Future) */}
-                        <div className="flex flex-col items-center gap-2 z-10">
-                           <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-200 text-slate-400 flex items-center justify-center">
-                             <CheckCircle2 className="w-4 h-4"/>
-                           </div>
-                           <span className="text-slate-500 font-medium text-xs text-center w-20">Confirmed</span>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                            {selectedInspection.applicantName}
+                            <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">
+                              Applicant
+                            </span>
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">{selectedInspection.companyName}</p>
                         </div>
                       </div>
-
-                      <div className="flex gap-3 justify-center border-t border-slate-200 pt-4">
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[120px]" onClick={handleApprove}>
-                          Approve Request
-                        </Button>
-                        <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 bg-white min-w-[120px]" onClick={handleReject}>
-                          Decline
-                        </Button>
-                      </div>
+                      <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
+                        {selectedInspection.status === "IN_PROGRESS" ? "In Call" : "Will be rung"}
+                      </Badge>
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                {/* Checklist */}
+                <div className="rounded-lg border bg-white p-5">
+                  <h4 className="text-sm font-bold text-slate-900 mb-3">
+                    {isLeadForSelected ? "Lead Officer On-Site Checklist" : "Remote Officer Checklist"}
+                  </h4>
+                  <ul className="space-y-2">
+                    {isLeadForSelected ? (
+                      <>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Physically verify the applicant is at the registered premises.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Pan your camera to show the factory floor, safety equipment, and exits to remote officers.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Ask the applicant to show original documents on camera for all departments.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Confirm GPS coordinates and share geolocation with the system.</span>
+                        </li>
+                      </>
+                    ) : (
+                      <>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Join the call when rung by the Lead Officer on-site.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Review live footage and ask the Lead Officer to show specific areas.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 min-w-4" />
+                          <span>Submit your department&apos;s approval/rejection directly in the call.</span>
+                        </li>
+                      </>
+                    )}
+                  </ul>
                 </div>
               </CardContent>
 
               <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100 bg-slate-50/50">
-                {/* Reschedule Dialog */}
-                <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
-                  <DialogTrigger className={buttonVariants({ variant: "outline", className: "w-full sm:flex-1 cursor-pointer bg-white" })}>
-                    Suggest Reschedule
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Propose New Date</DialogTitle>
-                      <DialogDescription>
-                        The applicant will be notified immediately with the new time.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="rs-date" className="text-right">Date</Label>
-                        <Input id="rs-date" type="date" className="col-span-3" value={date} onChange={e => setDate(e.target.value)} />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="rs-time" className="text-right">Time</Label>
-                        <Input id="rs-time" type="time" className="col-span-3" value={time} onChange={e => setTime(e.target.value)} />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="rs-reason" className="text-right">Reason</Label>
-                        <Input id="rs-reason" placeholder="Brief reason" className="col-span-3" value={reason} onChange={e => setReason(e.target.value)} />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setRescheduleOpen(false)} disabled={isSubmitting}>Cancel</Button>
-                      <Button onClick={handleRescheduleSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? "Sending..." : "Notify Applicant"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Call Button - Only available for Green/White category applications */}
-                {isSelectedAppGreen ? (
+                {selectedInspection.status === "COMPLETED" ? (
+                  <div className="w-full text-center py-2">
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-sm px-4 py-1.5">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Inspection Completed
+                    </Badge>
+                  </div>
+                ) : selectedInspection.status === "IN_PROGRESS" && !isLeadForSelected ? (
+                  /* Non-lead officers can join an in-progress call */
                   <Button
-                    onClick={handleCallApplicant}
-                    disabled={isCalling || !client}
-                    className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white flex gap-2 justify-center shadow-md"
+                    onClick={handleJoinInspection}
+                    disabled={isJoining || !client}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex gap-2 justify-center shadow-md"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {isJoining ? "Joining..." : !client ? "Initializing..." : "Join Live Inspection Call"}
+                  </Button>
+                ) : isLeadForSelected && selectedInspection.status === "PENDING" ? (
+                  /* Lead officer can start the joint inspection */
+                  <Button
+                    onClick={() => setConfirmDialogOpen(true)}
+                    disabled={!client}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white flex gap-2 justify-center shadow-md text-base py-5"
+                  >
+                    <PlayCircle className="h-5 w-5" />
+                    {!client ? "Initializing Video..." : "Start Joint Inspection"}
+                  </Button>
+                ) : isLeadForSelected && selectedInspection.status === "IN_PROGRESS" ? (
+                  <Button
+                    onClick={() => {
+                      if (selectedInspection.streamCallId) {
+                        router.push(`/meeting/${selectedInspection.streamCallId}`);
+                      }
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex gap-2 justify-center shadow-md"
                   >
                     <Video className="h-4 w-4" />
-                    {isCalling ? "Connecting..." : !client ? "Initializing..." : "Call Applicant"}
+                    Rejoin Inspection Call
                   </Button>
                 ) : (
-                  <div className="w-full sm:flex-1 group relative">
-                    <Button
-                      disabled
-                      className="w-full bg-slate-200 text-slate-500 cursor-not-allowed flex gap-2 justify-center"
-                    >
-                      <Video className="h-4 w-4" />
-                      Call Disabled (High Risk)
-                    </Button>
-                    <div className="absolute opacity-0 group-hover:opacity-100 transition bottom-full left-1/2 -translate-x-1/2 mb-2 w-[250px] text-xs text-white bg-slate-800 p-2 rounded shadow-lg pointer-events-none text-center z-10">
-                      High-Risk (Red & Orange) applications strictly mandate physical manual site visits. Remote video verification is prohibited.
-                    </div>
+                  <div className="w-full text-center py-2">
+                    <p className="text-sm text-slate-500 flex items-center justify-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Waiting for Lead Officer ({selectedInspection.leadDepartment}) to start the call
+                    </p>
                   </div>
                 )}
               </CardFooter>
@@ -390,6 +472,80 @@ export default function OfficerInspectionsClient({ officerId, department, eligib
           )}
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlayCircle className="h-5 w-5 text-blue-600" />
+              Start Joint Inspection
+            </DialogTitle>
+            <DialogDescription>
+              You are about to start a multi-party video call. The following officers and the applicant will be rung simultaneously.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedInspection && (
+            <div className="space-y-3 py-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm font-semibold text-blue-900">
+                  {selectedInspection.companyName}
+                </p>
+                <p className="text-xs text-blue-700 mt-0.5">
+                  Application: {selectedInspection.applicationId}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Will be rung:</p>
+                {selectedInspection.departments
+                  .filter(d => d.officerId !== officerId)
+                  .map((dept, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 p-2 rounded-md border border-slate-100">
+                      <Building2 className="h-4 w-4 text-indigo-500" />
+                      <span className="font-medium">{dept.department}</span>
+                      <span className="text-slate-400">— {dept.officerName || "Officer"}</span>
+                    </div>
+                  ))}
+                <div className="flex items-center gap-2 text-sm text-slate-700 bg-amber-50 p-2 rounded-md border border-amber-100">
+                  <User className="h-4 w-4 text-amber-600" />
+                  <span className="font-medium">{selectedInspection.applicantName}</span>
+                  <span className="text-slate-400">— Applicant (on-site)</span>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                <strong>Note:</strong> The call will be automatically recorded for audit trail purposes.
+                All participants will be notified.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} disabled={isStarting}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStartJointInspection}
+              disabled={isStarting}
+              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[180px]"
+            >
+              {isStarting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Phone className="h-4 w-4 mr-2" />
+                  Ring All & Start
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -59,6 +59,7 @@ model Application {
   documents      Document[]
   reviews        ApplicationReview[]
   approvals      ApprovalRequirement[]
+  jointInspections JointInspection[]
   
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -131,4 +132,35 @@ model Inspection {
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model JointInspection {
+  id              String   @id @default(cuid())
+  applicationId   String
+  leadOfficerId   String
+  leadDepartment  String
+  streamCallId    String?
+  status          String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  scheduledDate   DateTime
+  
+  departments     JointInspectionDept[]
+  application     Application @relation(fields: [applicationId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model JointInspectionDept {
+  id                String   @id @default(cuid())
+  jointInspectionId String
+  department        String
+  officerId         String?
+  decision          String?  // APPROVED, REJECTED, QUERIED
+  comments          String?
+  decidedAt         DateTime?
+  joined            Boolean  @default(false)
+  
+  jointInspection   JointInspection @relation(fields: [jointInspectionId], references: [id])
+  
+  createdAt         DateTime @default(now())
 }

@@ -257,3 +257,162 @@ export function updateMeetingSchedule(date: string, time: string) {
   globalAny.mockMeetingSchedule = { date, time, formatted };
   return globalAny.mockMeetingSchedule;
 }
+
+// ─── Joint Inspection (Multi-Department Video Inspection) ─────────────────────
+
+export interface JointInspectionDept {
+  department: string;
+  officerId: string | null; // null until an officer joins
+  officerName: string | null;
+  decision: "PENDING" | "APPROVED" | "REJECTED" | "QUERIED" | null;
+  comments: string | null;
+  decidedAt: string | null;
+  joined: boolean;
+}
+
+export interface JointInspectionSession {
+  id: string;
+  applicationId: string;
+  applicantId: string;
+  applicantName: string;
+  companyName: string;
+  leadOfficerId: string;
+  leadDepartment: string;
+  departments: JointInspectionDept[];
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  scheduledDate: string;
+  scheduledTime: string;
+  scheduledFormatted: string;
+  streamCallId: string | null;
+  riskCategory: string;
+}
+
+// Pre-seed joint inspections for existing mock applications
+const MOCK_JOINT_INSPECTIONS: JointInspectionSession[] = [
+  {
+    id: "JI-2026-001",
+    applicationId: "APP-2026-0042",
+    applicantId: "123456789012",
+    applicantName: "Rahul Sharma",
+    companyName: "Acme Steel Industries Pvt Ltd",
+    leadOfficerId: "off-midc-1",
+    leadDepartment: "MIDC",
+    departments: [
+      { department: "MIDC", officerId: "off-midc-1", officerName: "Officer (MIDC)", decision: null, comments: null, decidedAt: null, joined: false },
+      { department: "MPCB", officerId: "off-mpcb-1", officerName: "Officer (MPCB)", decision: null, comments: null, decidedAt: null, joined: false },
+      { department: "Fire Services Department", officerId: "off-fireservicesdepartment-1", officerName: "Officer (Fire)", decision: null, comments: null, decidedAt: null, joined: false },
+      { department: "DISH / Labour Department", officerId: "off-dishlabour-1", officerName: "Officer (Labour)", decision: null, comments: null, decidedAt: null, joined: false },
+    ],
+    status: "PENDING",
+    scheduledDate: "2026-09-22",
+    scheduledTime: "11:00",
+    scheduledFormatted: "22 Sep 2026, 11:00 AM",
+    streamCallId: null,
+    riskCategory: "Green",
+  },
+  {
+    id: "JI-2026-002",
+    applicationId: "APP-2026-0038",
+    applicantId: "priya-patil-001",
+    applicantName: "Priya Patil",
+    companyName: "GreenLeaf Food Processing LLP",
+    leadOfficerId: "off-midc-1",
+    leadDepartment: "MIDC",
+    departments: [
+      { department: "MIDC", officerId: "off-midc-1", officerName: "Officer (MIDC)", decision: null, comments: null, decidedAt: null, joined: false },
+      { department: "MPCB", officerId: "off-mpcb-1", officerName: "Officer (MPCB)", decision: null, comments: null, decidedAt: null, joined: false },
+      { department: "Fire Services Department", officerId: "off-fireservicesdepartment-1", officerName: "Officer (Fire)", decision: null, comments: null, decidedAt: null, joined: false },
+    ],
+    status: "PENDING",
+    scheduledDate: "2026-09-25",
+    scheduledTime: "14:00",
+    scheduledFormatted: "25 Sep 2026, 02:00 PM",
+    streamCallId: null,
+    riskCategory: "Orange",
+  }
+];
+
+if (!globalAny.mockJointInspections) {
+  globalAny.mockJointInspections = [...MOCK_JOINT_INSPECTIONS];
+}
+
+export function getAllJointInspections(): JointInspectionSession[] {
+  return globalAny.mockJointInspections;
+}
+
+export function getJointInspectionById(id: string): JointInspectionSession | undefined {
+  return globalAny.mockJointInspections.find((ji: JointInspectionSession) => ji.id === id);
+}
+
+export function getJointInspectionsForDepartment(department: string): JointInspectionSession[] {
+  return globalAny.mockJointInspections.filter((ji: JointInspectionSession) =>
+    ji.departments.some(d => d.department === department)
+  );
+}
+
+export function getJointInspectionsForApplicant(applicantId: string): JointInspectionSession[] {
+  return globalAny.mockJointInspections.filter((ji: JointInspectionSession) =>
+    ji.applicantId === applicantId
+  );
+}
+
+export function getJointInspectionByCallId(callId: string): JointInspectionSession | undefined {
+  return globalAny.mockJointInspections.find((ji: JointInspectionSession) => ji.streamCallId === callId);
+}
+
+export function createJointInspection(session: JointInspectionSession): void {
+  globalAny.mockJointInspections.push(session);
+}
+
+export function updateJointInspectionStatus(id: string, status: JointInspectionSession["status"]): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === id);
+  if (ji) ji.status = status;
+}
+
+export function setJointInspectionCallId(id: string, callId: string): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === id);
+  if (ji) ji.streamCallId = callId;
+}
+
+export function markDeptJoined(inspectionId: string, department: string, officerId: string): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === inspectionId);
+  if (!ji) return;
+  const dept = ji.departments.find((d: JointInspectionDept) => d.department === department);
+  if (dept) {
+    dept.joined = true;
+    dept.officerId = officerId;
+  }
+}
+
+export function updateDeptDecision(
+  inspectionId: string,
+  department: string,
+  decision: "APPROVED" | "REJECTED" | "QUERIED",
+  comments: string
+): JointInspectionSession | undefined {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === inspectionId);
+  if (!ji) return undefined;
+  const dept = ji.departments.find((d: JointInspectionDept) => d.department === department);
+  if (dept) {
+    dept.decision = decision;
+    dept.comments = comments;
+    dept.decidedAt = new Date().toISOString();
+  }
+
+  // Check if all departments have decided
+  const allDecided = ji.departments.every((d: JointInspectionDept) => d.decision !== null);
+  if (allDecided) {
+    const anyRejected = ji.departments.some((d: JointInspectionDept) => d.decision === "REJECTED");
+    ji.status = anyRejected ? "COMPLETED" : "COMPLETED";
+  }
+
+  // Send notification to applicant
+  addNotification({
+    title: `Joint Inspection: ${department} ${decision}`,
+    message: `${department} has marked your application as ${decision} during joint inspection. ${comments ? "Comments: " + comments : ""}`,
+    type: decision === "APPROVED" ? "SUCCESS" : decision === "REJECTED" ? "ERROR" : "WARNING",
+    link: `/dashboard/inspections`
+  });
+
+  return ji;
+}
