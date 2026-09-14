@@ -63,7 +63,7 @@ const MOCK_APPLICATIONS: SubmittedApplication[] = [
     sector: "Steel",
     scale: "small",
     district: "Pune",
-    riskCategory: "Red",
+    riskCategory: "Green",
     submittedAt: "2026-08-27T14:30:00+05:30",
     status: "IN_REVIEW",
     documents: [
@@ -314,26 +314,6 @@ const MOCK_JOINT_INSPECTIONS: JointInspectionSession[] = [
     scheduledFormatted: "22 Sep 2026, 11:00 AM",
     streamCallId: null,
     riskCategory: "Green",
-  },
-  {
-    id: "JI-2026-002",
-    applicationId: "APP-2026-0038",
-    applicantId: "priya-patil-001",
-    applicantName: "Priya Patil",
-    companyName: "GreenLeaf Food Processing LLP",
-    leadOfficerId: "off-midc-1",
-    leadDepartment: "MIDC",
-    departments: [
-      { department: "MIDC", officerId: "off-midc-1", officerName: "Officer (MIDC)", decision: null, comments: null, decidedAt: null, joined: false },
-      { department: "MPCB", officerId: "off-mpcb-1", officerName: "Officer (MPCB)", decision: null, comments: null, decidedAt: null, joined: false },
-      { department: "Fire Services Department", officerId: "off-fireservicesdepartment-1", officerName: "Officer (Fire)", decision: null, comments: null, decidedAt: null, joined: false },
-    ],
-    status: "PENDING",
-    scheduledDate: "2026-09-25",
-    scheduledTime: "14:00",
-    scheduledFormatted: "25 Sep 2026, 02:00 PM",
-    streamCallId: null,
-    riskCategory: "Orange",
   }
 ];
 
@@ -351,12 +331,14 @@ export function getJointInspectionById(id: string): JointInspectionSession | und
 
 export function getJointInspectionsForDepartment(department: string): JointInspectionSession[] {
   return globalAny.mockJointInspections.filter((ji: JointInspectionSession) =>
+    (ji.riskCategory === "Green" || ji.riskCategory === "White") &&
     ji.departments.some(d => d.department === department)
   );
 }
 
 export function getJointInspectionsForApplicant(applicantId: string): JointInspectionSession[] {
   return globalAny.mockJointInspections.filter((ji: JointInspectionSession) =>
+    (ji.riskCategory === "Green" || ji.riskCategory === "White") &&
     ji.applicantId === applicantId
   );
 }
