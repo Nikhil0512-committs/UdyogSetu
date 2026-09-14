@@ -22,10 +22,11 @@ interface Props {
   officerId: string;
   department: string;
   jointInspections: JointInspectionSession[];
+  offlineSchedule?: any;
   isLeadOfficer: boolean;
 }
 
-export default function OfficerInspectionsClient({ officerId, department, jointInspections, isLeadOfficer }: Props) {
+export default function OfficerInspectionsClient({ officerId, department, jointInspections, offlineSchedule, isLeadOfficer }: Props) {
   const [selectedInspection, setSelectedInspection] = useState<JointInspectionSession | null>(jointInspections[0] || null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -128,6 +129,34 @@ export default function OfficerInspectionsClient({ officerId, department, jointI
       const { rejectJointRescheduleRequest } = await import("@/actions/joint-inspection");
       await rejectJointRescheduleRequest(selectedInspection.id);
       toast.success("Reschedule request rejected.");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(`Failed to reject: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsProcessingReschedule(false);
+    }
+  };
+
+  const handleApproveOfflineReschedule = async () => {
+    setIsProcessingReschedule(true);
+    try {
+      const { approveReschedule } = await import("@/actions/inspections");
+      await approveReschedule(); // backend infers user context
+      toast.success("Offline reschedule request approved!");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(`Failed to approve: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsProcessingReschedule(false);
+    }
+  };
+
+  const handleRejectOfflineReschedule = async () => {
+    setIsProcessingReschedule(true);
+    try {
+      const { rejectReschedule } = await import("@/actions/inspections");
+      await rejectReschedule();
+      toast.success("Offline reschedule request rejected.");
       window.location.reload();
     } catch (err: any) {
       toast.error(`Failed to reject: ${err?.message ?? "Unknown error"}`);
@@ -616,6 +645,72 @@ export default function OfficerInspectionsClient({ officerId, department, jointI
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Offline Inspections Section */}
+      {offlineSchedule && (
+        <div className="mt-12 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Individual Site Inspections</h2>
+            <p className="text-slate-600 mt-1">High-risk categories (Orange/Red) requiring traditional offline visits.</p>
+          </div>
+          <Card className="border-slate-200 shadow-sm max-w-4xl">
+            <CardHeader className="bg-slate-50 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg text-slate-900">
+                    {offlineSchedule.companyName}
+                  </CardTitle>
+                  <CardDescription>
+                    Applicant: {offlineSchedule.applicantName}
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className={statusColors[offlineSchedule.status] || "bg-slate-100"}>
+                  {offlineSchedule.status.replace("_", " ")}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4 text-sm text-slate-700 mb-6">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span>Scheduled: {offlineSchedule.formatted}</span>
+                </div>
+              </div>
+
+              {offlineSchedule.status === "RESCHEDULE_REQUESTED" && (
+                <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-5">
+                  <h3 className="font-semibold text-amber-900 text-lg flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    Reschedule Requested
+                  </h3>
+                  <p className="text-sm text-amber-800 mb-4">
+                    The applicant has requested to reschedule this inspection to <strong>{offlineSchedule.proposedFormatted}</strong>.
+                    <br/>
+                    <span className="text-xs">Reason: {offlineSchedule.reason || "No reason provided"}</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={handleApproveOfflineReschedule} 
+                      disabled={isProcessingReschedule} 
+                      className="bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      Approve Reschedule
+                    </Button>
+                    <Button 
+                      onClick={handleRejectOfflineReschedule} 
+                      disabled={isProcessingReschedule} 
+                      variant="outline" 
+                      className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
