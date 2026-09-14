@@ -32,6 +32,7 @@ export default function OfficerInspectionsClient({ officerId, department, jointI
   const [isJoining, setIsJoining] = useState(false);
   const router = useRouter();
   const client = useStreamVideoClient();
+  const [isProcessingReschedule, setIsProcessingReschedule] = useState(false);
 
   const isLeadForSelected = selectedInspection?.leadOfficerId === officerId;
   const myDeptInSelected = selectedInspection?.departments.find(d => d.department === department);
@@ -101,6 +102,37 @@ export default function OfficerInspectionsClient({ officerId, department, jointI
       toast.error(`Failed to join: ${err?.message ?? "Unknown error"}`);
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleApproveReschedule = async () => {
+    if (!selectedInspection) return;
+    setIsProcessingReschedule(true);
+    try {
+      const { approveJointRescheduleRequest } = await import("@/actions/joint-inspection");
+      await approveJointRescheduleRequest(selectedInspection.id);
+      toast.success("Reschedule request approved!");
+      // The page will revalidate and update the state
+      window.location.reload(); // Simple force refresh to get new mock state
+    } catch (err: any) {
+      toast.error(`Failed to approve: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsProcessingReschedule(false);
+    }
+  };
+
+  const handleRejectReschedule = async () => {
+    if (!selectedInspection) return;
+    setIsProcessingReschedule(true);
+    try {
+      const { rejectJointRescheduleRequest } = await import("@/actions/joint-inspection");
+      await rejectJointRescheduleRequest(selectedInspection.id);
+      toast.success("Reschedule request rejected.");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(`Failed to reject: ${err?.message ?? "Unknown error"}`);
+    } finally {
+      setIsProcessingReschedule(false);
     }
   };
 
@@ -237,6 +269,44 @@ export default function OfficerInspectionsClient({ officerId, department, jointI
               </CardHeader>
 
               <CardContent className="space-y-5 flex-grow pt-6 overflow-y-auto">
+                {/* Reschedule Request Panel */}
+                {selectedInspection.status === "RESCHEDULE_REQUESTED" && (
+                  <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-5">
+                    <h3 className="font-semibold text-amber-900 text-lg flex items-center gap-2 mb-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      Reschedule Requested
+                    </h3>
+                    <p className="text-sm text-amber-800 mb-4">
+                      The applicant has requested to reschedule this inspection to <strong>{selectedInspection.proposedFormatted}</strong>.
+                      <br/>
+                      <span className="text-xs">Reason: {selectedInspection.rescheduleReason || "No reason provided"}</span>
+                    </p>
+                    {isLeadForSelected ? (
+                      <div className="flex gap-3">
+                        <Button 
+                          onClick={handleApproveReschedule} 
+                          disabled={isProcessingReschedule} 
+                          className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                          Approve Reschedule
+                        </Button>
+                        <Button 
+                          onClick={handleRejectReschedule} 
+                          disabled={isProcessingReschedule} 
+                          variant="outline" 
+                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-amber-700 font-semibold bg-amber-100 p-2 rounded inline-block">
+                        Waiting for Lead Officer ({selectedInspection.leadDepartment}) to respond to the request.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Inspection Info */}
                 <div className="rounded-lg border bg-slate-50 p-5">
                   <h3 className="font-semibold text-slate-900 text-lg flex items-center gap-2">

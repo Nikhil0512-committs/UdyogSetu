@@ -279,10 +279,15 @@ export interface JointInspectionSession {
   leadOfficerId: string;
   leadDepartment: string;
   departments: JointInspectionDept[];
-  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "RESCHEDULE_REQUESTED";
   scheduledDate: string;
   scheduledTime: string;
   scheduledFormatted: string;
+  proposedDate?: string;
+  proposedTime?: string;
+  proposedFormatted?: string;
+  rescheduleReason?: string;
+  initiator?: "APPLICANT" | "OFFICER";
   streamCallId: string | null;
   riskCategory: string;
 }
@@ -416,3 +421,61 @@ export function updateDeptDecision(
 
   return ji;
 }
+
+export function requestJointReschedule(id: string, proposedDate: string, proposedTime: string, proposedFormatted: string, reason: string, initiator: "APPLICANT" | "OFFICER"): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === id);
+  if (!ji) return;
+  ji.status = "RESCHEDULE_REQUESTED";
+  ji.proposedDate = proposedDate;
+  ji.proposedTime = proposedTime;
+  ji.proposedFormatted = proposedFormatted;
+  ji.rescheduleReason = reason;
+  ji.initiator = initiator;
+
+  addNotification({
+    title: "Joint Inspection Reschedule Requested",
+    message: `${initiator === "APPLICANT" ? "Applicant" : "Officer"} requested to reschedule to ${proposedFormatted}.`,
+    type: "WARNING",
+    link: initiator === "APPLICANT" ? "/officer/inspections" : "/dashboard/inspections"
+  });
+}
+
+export function approveJointReschedule(id: string): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === id);
+  if (!ji || !ji.proposedDate) return;
+  ji.scheduledDate = ji.proposedDate;
+  ji.scheduledTime = ji.proposedTime!;
+  ji.scheduledFormatted = ji.proposedFormatted!;
+  ji.status = "PENDING";
+  ji.proposedDate = undefined;
+  ji.proposedTime = undefined;
+  ji.proposedFormatted = undefined;
+  ji.rescheduleReason = undefined;
+  ji.initiator = undefined;
+
+  addNotification({
+    title: "Reschedule Approved",
+    message: `Joint Inspection has been rescheduled to ${ji.scheduledFormatted}.`,
+    type: "SUCCESS",
+    link: "/dashboard/inspections"
+  });
+}
+
+export function rejectJointReschedule(id: string): void {
+  const ji = globalAny.mockJointInspections.find((j: JointInspectionSession) => j.id === id);
+  if (!ji) return;
+  ji.status = "PENDING";
+  ji.proposedDate = undefined;
+  ji.proposedTime = undefined;
+  ji.proposedFormatted = undefined;
+  ji.rescheduleReason = undefined;
+  ji.initiator = undefined;
+
+  addNotification({
+    title: "Reschedule Rejected",
+    message: `The reschedule request was rejected. The original schedule remains: ${ji.scheduledFormatted}.`,
+    type: "ERROR",
+    link: "/dashboard/inspections"
+  });
+}
+

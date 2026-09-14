@@ -11,6 +11,9 @@ import {
   markDeptJoined,
   updateDeptDecision,
   addNotification,
+  requestJointReschedule,
+  approveJointReschedule,
+  rejectJointReschedule,
   type JointInspectionSession,
 } from "@/lib/mock-data";
 import { ensureStreamUsers } from "@/actions/stream";
@@ -192,4 +195,60 @@ export async function joinJointInspection(inspectionId: string): Promise<void> {
  */
 export async function pollJointInspectionState(inspectionId: string): Promise<JointInspectionSession | null> {
   return getJointInspectionById(inspectionId) || null;
+}
+
+/**
+ * Request to reschedule a joint inspection
+ */
+export async function submitJointRescheduleRequest(
+  inspectionId: string,
+  newDate: string,
+  newTime: string,
+  reason: string,
+  initiator: "APPLICANT" | "OFFICER"
+) {
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+  
+  const proposedFormatted = new Date(`${newDate}T${newTime}:00`).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  requestJointReschedule(inspectionId, newDate, newTime, proposedFormatted, reason, initiator);
+  
+  revalidatePath("/dashboard/inspections");
+  revalidatePath("/officer/inspections");
+  return { success: true };
+}
+
+/**
+ * Approve a joint inspection reschedule request
+ */
+export async function approveJointRescheduleRequest(inspectionId: string) {
+  const session = await getSession();
+  if (!session || session.role !== "OFFICER") throw new Error("Unauthorized");
+
+  approveJointReschedule(inspectionId);
+
+  revalidatePath("/dashboard/inspections");
+  revalidatePath("/officer/inspections");
+  return { success: true };
+}
+
+/**
+ * Reject a joint inspection reschedule request
+ */
+export async function rejectJointRescheduleRequest(inspectionId: string) {
+  const session = await getSession();
+  if (!session || session.role !== "OFFICER") throw new Error("Unauthorized");
+
+  rejectJointReschedule(inspectionId);
+
+  revalidatePath("/dashboard/inspections");
+  revalidatePath("/officer/inspections");
+  return { success: true };
 }

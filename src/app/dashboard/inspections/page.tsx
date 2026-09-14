@@ -44,6 +44,7 @@ export default function InspectionsPage() {
   const [time, setTime] = React.useState(schedule.time);
   const [reason, setReason] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [activeRescheduleId, setActiveRescheduleId] = React.useState<string | null>(null);
 
   // Joint inspection state
   const [jointInspections, setJointInspections] = React.useState<JointInspectionSession[]>([]);
@@ -103,6 +104,36 @@ export default function InspectionsPage() {
       const { fetchInspectionSchedule } = await import("@/actions/inspections");
       const s = await fetchInspectionSchedule();
       setSchedule(s);
+    } catch (err) {
+      toast.error("Failed to send reschedule request.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleJointRescheduleSubmit = async () => {
+    if (!date || !time || !activeRescheduleId) {
+      toast.error("Please select both a date and a time slot.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const { submitJointRescheduleRequest, fetchJointInspections } = await import("@/actions/joint-inspection");
+      await submitJointRescheduleRequest(
+        activeRescheduleId,
+        date,
+        time,
+        reason || "No reason provided",
+        "APPLICANT"
+      );
+      toast.success("Reschedule request sent to Lead Officer for approval.");
+      setRescheduleOpen(false);
+      setReason("");
+      setActiveRescheduleId(null);
+      
+      const inspections = await fetchJointInspections();
+      setJointInspections(inspections);
     } catch (err) {
       toast.error("Failed to send reschedule request.");
     } finally {
@@ -273,7 +304,7 @@ export default function InspectionsPage() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-0">
+                  <CardFooter className="pt-0 flex gap-2">
                     {ji.status === "IN_PROGRESS" && (
                       <div className="w-full">
                         <Button 
@@ -286,6 +317,25 @@ export default function InspectionsPage() {
                           </span>
                           Live: Awaiting Officer&apos;s Call
                         </Button>
+                      </div>
+                    )}
+                    {ji.status === "PENDING" && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          setActiveRescheduleId(ji.id);
+                          setDate(ji.scheduledDate);
+                          setTime(ji.scheduledTime);
+                          setRescheduleOpen(true);
+                        }}
+                      >
+                        Reschedule
+                      </Button>
+                    )}
+                    {ji.status === "RESCHEDULE_REQUESTED" && (
+                      <div className="w-full bg-amber-50 text-amber-800 border border-amber-200 text-xs p-2 rounded-lg text-center font-medium">
+                        Reschedule Requested: {ji.proposedFormatted}
                       </div>
                     )}
                   </CardFooter>
@@ -488,7 +538,10 @@ export default function InspectionsPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100 bg-slate-50/50">
-            <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+            <Dialog open={rescheduleOpen} onOpenChange={(open) => {
+              setRescheduleOpen(open);
+              if (!open) setActiveRescheduleId(null);
+            }}>
               <DialogTrigger className={buttonVariants({ variant: "outline", className: "w-full sm:flex-1 cursor-pointer bg-white" })}>
                 Reschedule
               </DialogTrigger>
@@ -590,10 +643,18 @@ export default function InspectionsPage() {
                   )}
                   
                   <div className="p-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
-                    <Button type="button" variant="outline" onClick={() => setRescheduleOpen(false)} disabled={isSubmitting}>
+                    <Button type="button" variant="outline" onClick={() => {
+                      setRescheduleOpen(false);
+                      setActiveRescheduleId(null);
+                    }} disabled={isSubmitting}>
                       Cancel
                     </Button>
-                    <Button type="button" onClick={handleRescheduleSubmit} disabled={isSubmitting || !date || !time} className="min-w-[140px]">
+                    <Button 
+                      type="button" 
+                      onClick={activeRescheduleId ? handleJointRescheduleSubmit : handleRescheduleSubmit} 
+                      disabled={isSubmitting || !date || !time} 
+                      className="min-w-[140px]"
+                    >
                       {isSubmitting ? "Submitting..." : "Confirm Request"}
                     </Button>
                   </div>

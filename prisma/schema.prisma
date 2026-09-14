@@ -140,8 +140,11 @@ model JointInspection {
   leadOfficerId   String
   leadDepartment  String
   streamCallId    String?
-  status          String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  status          String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED, RESCHEDULE_REQUESTED
   scheduledDate   DateTime
+  proposedDate    DateTime?
+  rescheduleReason String?
+  initiator       String?  // 'APPLICANT' or 'OFFICER'
   
   departments     JointInspectionDept[]
   application     Application @relation(fields: [applicationId], references: [id])
