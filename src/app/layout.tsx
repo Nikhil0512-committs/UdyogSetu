@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 
 import { getSession } from "@/lib/auth";
 import StreamClientProvider from "@/components/StreamClientProvider";
+import RealtimeNotifications from "@/components/realtime-notifications";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -44,6 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {session ? (
           <StreamClientProvider userId={safeUserId} userName={userName}>
             {children}
+            <RealtimeNotifications />
           </StreamClientProvider>
         ) : (
           children

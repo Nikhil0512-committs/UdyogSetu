@@ -1,6 +1,8 @@
 // Shared mock data store — simulates what would be in the database
 // This is an in-memory store for the prototype; in production this would be Prisma/Postgres
 
+import { pusherServer } from "./pusher";
+
 export interface SubmittedDoc {
   id: string;
   name: string;       // e.g. "PAN card (Company/Proprietor)"
@@ -210,12 +212,26 @@ export function getNotifications(): AppNotification[] {
 }
 
 export function addNotification(notif: Omit<AppNotification, "id" | "date" | "read">) {
-  globalAny.mockNotifications.push({
+  const notification = {
     ...notif,
     id: `notif-${Date.now()}`,
     date: new Date().toISOString(),
     read: false
-  });
+  };
+  globalAny.mockNotifications.unshift(notification);
+
+  // Trigger real-time push via WebSockets
+  if (pusherServer) {
+    try {
+      // Broadcast to a generic 'notifications' channel for demo purposes,
+      // or to a specific user channel if we add targetUserId to the notification args in the future.
+      pusherServer.trigger("global-notifications", "new-notification", notification);
+    } catch (err) {
+      console.error("Pusher trigger failed:", err);
+    }
+  }
+
+  return notification;
 }
 
 export function markNotificationRead(id: string) {
