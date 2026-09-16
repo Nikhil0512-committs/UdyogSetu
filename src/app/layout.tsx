@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { Toaster } from "sonner";
+import { getSession } from "@/lib/auth";
+import StreamClientProvider from "@/components/StreamClientProvider";
+import RealtimeNotifications from "@/components/realtime-notifications";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -22,9 +25,10 @@ export const metadata: Metadata = {
   description: "Maharashtra Industrial Approvals Platform",
 };
 
-import { getSession } from "@/lib/auth";
-import StreamClientProvider from "@/components/StreamClientProvider";
-import RealtimeNotifications from "@/components/realtime-notifications";
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -41,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={`${fraunces.variable} ${notoSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col overflow-x-clip" suppressHydrationWarning>
         {session ? (
           <StreamClientProvider userId={safeUserId} userName={userName}>
             {children}
