@@ -290,7 +290,7 @@ export function SchemesClient() {
           <Lightbulb className="w-64 h-64" />
         </div>
         <div className="relative z-10 max-w-2xl">
-          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-white" style={{ color: '#ffffff' }}>
             <Lightbulb className="w-5 h-5 text-amber-300" /> Need Help Understanding Schemes?
           </h3>
           <p className="text-blue-100 text-sm">
