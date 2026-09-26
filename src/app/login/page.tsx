@@ -25,7 +25,7 @@ const DEPARTMENTS = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"APPLICANT" | "OFFICER">("APPLICANT");
+  const [role, setRole] = useState<"APPLICANT" | "OFFICER" | "ADMIN">("APPLICANT");
   const [department, setDepartment] = useState("");
   const [error, setError] = useState("");
   
@@ -46,8 +46,8 @@ export default function LoginPage() {
       body: JSON.stringify({
         id: idValue,
         role,
-        name: role === "OFFICER" ? `Officer (${deptInfo?.label || "Admin"})` : undefined,
-        department: role === "OFFICER" ? department : undefined,
+        name: role === "OFFICER" ? `Officer (${deptInfo?.label || "Admin"})` : role === "ADMIN" ? "Administrator" : undefined,
+        department: role === "OFFICER" ? department : role === "ADMIN" ? "Administration" : undefined,
       }),
     });
     
@@ -57,7 +57,7 @@ export default function LoginPage() {
       return;
     }
     
-    router.push(role === "APPLICANT" ? "/dashboard" : "/officer/dashboard");
+    router.push(role === "APPLICANT" ? "/dashboard" : role === "ADMIN" ? "/admin/dashboard" : "/officer/dashboard");
   };
 
   return (
@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
         
         <form onSubmit={handleLogin} className="space-y-6">
-          <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
+          <div className="flex gap-1.5 p-1 bg-slate-100 rounded-lg">
             <button
               type="button"
               onClick={() => { setRole("APPLICANT"); setDepartment(""); }}
@@ -83,7 +83,14 @@ export default function LoginPage() {
               onClick={() => setRole("OFFICER")}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-colors ${role === "OFFICER" ? "bg-white shadow text-blue-700" : "text-slate-600 hover:text-slate-900"}`}
             >
-              Department Officer
+              Officer
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRole("ADMIN"); setDepartment(""); }}
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-colors ${role === "ADMIN" ? "bg-white shadow text-indigo-700" : "text-slate-600 hover:text-slate-900"}`}
+            >
+              Administrator
             </button>
           </div>
           
@@ -103,17 +110,24 @@ export default function LoginPage() {
             </div>
           )}
 
+          {role === "ADMIN" && (
+            <div className="p-3 bg-indigo-50 text-indigo-700 text-sm rounded-md border border-indigo-200">
+              <p className="font-semibold">🛡️ Administrator Access</p>
+              <p className="mt-1 text-indigo-600 text-xs">Full oversight of all departments, officers, and applications. Use credentials provided by the IT department.</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-800 font-medium">
-                {role === "APPLICANT" ? "Email Address" : "Employee ID"}
+                {role === "APPLICANT" ? "Email Address" : role === "ADMIN" ? "Admin ID" : "Employee ID"}
               </Label>
               <Input
                 key={`login-id-${role}`}
                 type={role === "APPLICANT" ? "email" : "text"}
-                placeholder={role === "APPLICANT" ? "admin@company.com" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
+                placeholder={role === "APPLICANT" ? "admin@company.com" : role === "ADMIN" ? "ADMIN-001" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
                 required
-                defaultValue={role === "APPLICANT" ? "admin@company.com" : ""}
+                defaultValue={role === "APPLICANT" ? "admin@company.com" : role === "ADMIN" ? "ADMIN-001" : ""}
                 className="text-slate-900"
               />
             </div>
@@ -128,8 +142,12 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 mt-4 shadow-sm" disabled={role === "OFFICER" && !department}>
-              {role === "APPLICANT" ? "Sign In as Applicant" : `Sign In to ${department || "..."}`}
+            <Button 
+              type="submit" 
+              className={`w-full text-lg py-6 mt-4 shadow-sm ${role === "ADMIN" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-blue-600 hover:bg-blue-700"}`} 
+              disabled={role === "OFFICER" && !department}
+            >
+              {role === "APPLICANT" ? "Sign In as Applicant" : role === "ADMIN" ? "Sign In as Administrator" : `Sign In to ${department || "..."}`}
             </Button>
             
             {role === "APPLICANT" && (

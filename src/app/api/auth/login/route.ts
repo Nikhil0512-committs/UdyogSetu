@@ -157,6 +157,27 @@ export async function POST(request: Request) {
       } catch (officerDbErr) {
         console.warn("Officer DB upsert warning:", officerDbErr);
       }
+    } else if (role === "ADMIN") {
+      const adminEmail = `admin@udyogsetu.gov.in`;
+      resolvedUserId = "admin-001";
+      resolvedName = name || "Administrator";
+      resolvedCompanyName = "UdyogSetu Administration";
+
+      try {
+        dbUser = await prisma.user.upsert({
+          where: { email: adminEmail },
+          update: { name: resolvedName },
+          create: {
+            id: resolvedUserId,
+            name: resolvedName,
+            email: adminEmail,
+            role: "ADMIN",
+            companyName: "UdyogSetu Administration",
+          }
+        });
+      } catch (adminDbErr) {
+        console.warn("Admin DB upsert warning:", adminDbErr);
+      }
     }
 
     const session = {
