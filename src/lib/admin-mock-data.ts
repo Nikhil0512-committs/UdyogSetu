@@ -287,8 +287,8 @@ export const DEPARTMENT_STATS: DepartmentStats[] = [
 export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0042",
-    applicantName: "Rahul Sharma",
-    companyName: "Acme Steel Industries Pvt Ltd",
+    applicantName: "Rahul Deshmukh",
+    companyName: "Bhima Steel Works Pvt Ltd",
     sector: "Steel",
     district: "Pune",
     scale: "Small",
@@ -311,7 +311,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0038",
     applicantName: "Priya Patil",
-    companyName: "GreenLeaf Food Processing LLP",
+    companyName: "Sahyadri Agro Processing LLP",
     sector: "Food Processing",
     district: "Nashik",
     scale: "Micro",
@@ -332,8 +332,8 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   },
   {
     id: "APP-2026-0051",
-    applicantName: "Vikram Mehta",
-    companyName: "Mehta Pharma Solutions",
+    applicantName: "Vikram Kadam",
+    companyName: "Godavari Pharmaceuticals & Chemicals",
     sector: "Pharma",
     district: "Thane",
     scale: "Medium",
@@ -357,7 +357,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0055",
     applicantName: "Ananya Desai",
-    companyName: "TechNova IT Services Pvt Ltd",
+    companyName: "Magarpatta Tech Solutions Pvt Ltd",
     sector: "IT & ITES",
     district: "Pune",
     scale: "Small",
@@ -376,7 +376,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0060",
     applicantName: "Suresh Wagh",
-    companyName: "Wagh Textiles & Dyeing Works",
+    companyName: "Deccan Textiles & Dyeing Works",
     sector: "Textiles",
     district: "Solapur",
     scale: "Small",
@@ -397,7 +397,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0063",
     applicantName: "Neha Joshi",
-    companyName: "Joshi Auto Components Pvt Ltd",
+    companyName: "Waluj Auto Components Pvt Ltd",
     sector: "Automobile",
     district: "Chhatrapati Sambhajinagar",
     scale: "Medium",
@@ -418,7 +418,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0070",
     applicantName: "Manoj Kulkarni",
-    companyName: "Kulkarni Sugar Industries",
+    companyName: "Panchaganga Sugar Factory Ltd",
     sector: "Sugar",
     district: "Kolhapur",
     scale: "Large",
@@ -440,7 +440,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0075",
     applicantName: "Deepak Chavan",
-    companyName: "Chavan Chemicals Pvt Ltd",
+    companyName: "Raigad Petrochemicals Pvt Ltd",
     sector: "Chemicals",
     district: "Raigad",
     scale: "Medium",
@@ -462,7 +462,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0080",
     applicantName: "Sanjay Mane",
-    companyName: "Mane Paper Mills",
+    companyName: "Ballarpur Paper & Packaging",
     sector: "Paper & Pulp",
     district: "Chandrapur",
     scale: "Medium",
@@ -482,7 +482,7 @@ export const ADMIN_APPLICATIONS: AdminApplication[] = [
   {
     id: "APP-2026-0082",
     applicantName: "Kavita Rao",
-    companyName: "Rao Electronics Assembly",
+    companyName: "Vidarbha Electronics Assembly Pvt Ltd",
     sector: "Electronics",
     district: "Nagpur",
     scale: "Micro",
@@ -515,9 +515,9 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 12,
     performanceScore: 94,
     recentActions: [
-      { applicationId: "APP-2026-0082", companyName: "Rao Electronics Assembly", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-22T10:00:00+05:30", timeTakenDays: 2 },
-      { applicationId: "APP-2026-0060", companyName: "Wagh Textiles & Dyeing Works", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-10T14:00:00+05:30", timeTakenDays: 5 },
-      { applicationId: "APP-2026-0051", companyName: "Mehta Pharma Solutions", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-06T16:00:00+05:30", timeTakenDays: 4 },
+      { applicationId: "APP-2026-0082", companyName: "Vidarbha Electronics Assembly Pvt Ltd", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-22T10:00:00+05:30", timeTakenDays: 2 },
+      { applicationId: "APP-2026-0060", companyName: "Deccan Textiles & Dyeing Works", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-10T14:00:00+05:30", timeTakenDays: 5 },
+      { applicationId: "APP-2026-0051", companyName: "Godavari Pharmaceuticals & Chemicals", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-06T16:00:00+05:30", timeTakenDays: 4 },
     ],
   },
   {
@@ -533,8 +533,8 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 8,
     performanceScore: 88,
     recentActions: [
-      { applicationId: "APP-2026-0075", companyName: "Chavan Chemicals Pvt Ltd", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-12T09:00:00+05:30", timeTakenDays: 4 },
-      { applicationId: "APP-2026-0063", companyName: "Joshi Auto Components Pvt Ltd", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-14T11:00:00+05:30", timeTakenDays: 2 },
+      { applicationId: "APP-2026-0075", companyName: "Raigad Petrochemicals Pvt Ltd", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-12T09:00:00+05:30", timeTakenDays: 4 },
+      { applicationId: "APP-2026-0063", companyName: "Waluj Auto Components Pvt Ltd", approvalName: "Factory Building Plan Approval", decision: "APPROVED", timestamp: "2026-09-14T11:00:00+05:30", timeTakenDays: 2 },
     ],
   },
   {
@@ -550,8 +550,8 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 18,
     performanceScore: 72,
     recentActions: [
-      { applicationId: "APP-2026-0075", companyName: "Chavan Chemicals Pvt Ltd", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-18T11:30:00+05:30", timeTakenDays: 10 },
-      { applicationId: "APP-2026-0038", companyName: "GreenLeaf Food Processing LLP", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-05T10:00:00+05:30", timeTakenDays: 10 },
+      { applicationId: "APP-2026-0075", companyName: "Raigad Petrochemicals Pvt Ltd", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-18T11:30:00+05:30", timeTakenDays: 10 },
+      { applicationId: "APP-2026-0038", companyName: "Sahyadri Agro Processing LLP", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-05T10:00:00+05:30", timeTakenDays: 10 },
     ],
   },
   {
@@ -567,7 +567,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 15,
     performanceScore: 68,
     recentActions: [
-      { applicationId: "APP-2026-0060", companyName: "Wagh Textiles & Dyeing Works", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-20T09:00:00+05:30", timeTakenDays: 15 },
+      { applicationId: "APP-2026-0060", companyName: "Deccan Textiles & Dyeing Works", approvalName: "Consent to Establish", decision: "QUERIED", timestamp: "2026-09-20T09:00:00+05:30", timeTakenDays: 15 },
     ],
   },
   {
@@ -583,7 +583,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 9,
     performanceScore: 82,
     recentActions: [
-      { applicationId: "APP-2026-0051", companyName: "Mehta Pharma Solutions", approvalName: "Provisional Fire NOC", decision: "APPROVED", timestamp: "2026-09-10T10:00:00+05:30", timeTakenDays: 8 },
+      { applicationId: "APP-2026-0051", companyName: "Godavari Pharmaceuticals & Chemicals", approvalName: "Provisional Fire NOC", decision: "APPROVED", timestamp: "2026-09-10T10:00:00+05:30", timeTakenDays: 8 },
     ],
   },
   {
@@ -599,7 +599,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 7,
     performanceScore: 91,
     recentActions: [
-      { applicationId: "APP-2026-0055", companyName: "TechNova IT Services Pvt Ltd", approvalName: "Shops & Establishment Registration", decision: "APPROVED", timestamp: "2026-09-12T09:00:00+05:30", timeTakenDays: 2 },
+      { applicationId: "APP-2026-0055", companyName: "Magarpatta Tech Solutions Pvt Ltd", approvalName: "Shops & Establishment Registration", decision: "APPROVED", timestamp: "2026-09-12T09:00:00+05:30", timeTakenDays: 2 },
     ],
   },
   {
@@ -615,7 +615,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 6,
     performanceScore: 65,
     recentActions: [
-      { applicationId: "APP-2026-0075", companyName: "Chavan Chemicals Pvt Ltd", approvalName: "Hazardous Substance Storage License", decision: "QUERIED", timestamp: "2026-09-20T15:00:00+05:30", timeTakenDays: 12 },
+      { applicationId: "APP-2026-0075", companyName: "Raigad Petrochemicals Pvt Ltd", approvalName: "Hazardous Substance Storage License", decision: "QUERIED", timestamp: "2026-09-20T15:00:00+05:30", timeTakenDays: 12 },
     ],
   },
   {
@@ -631,7 +631,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
     currentWorkload: 5,
     performanceScore: 93,
     recentActions: [
-      { applicationId: "APP-2026-0082", companyName: "Rao Electronics Assembly", approvalName: "HT Power Connection Approval", decision: "APPROVED", timestamp: "2026-09-24T14:00:00+05:30", timeTakenDays: 4 },
+      { applicationId: "APP-2026-0082", companyName: "Vidarbha Electronics Assembly Pvt Ltd", approvalName: "HT Power Connection Approval", decision: "APPROVED", timestamp: "2026-09-24T14:00:00+05:30", timeTakenDays: 4 },
     ],
   },
   {
@@ -667,7 +667,7 @@ export const OFFICER_ACTIVITIES: OfficerActivity[] = [
 export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   {
     id: "APP-2026-0038",
-    companyName: "GreenLeaf Food Processing LLP",
+    companyName: "Sahyadri Agro Processing LLP",
     applicantName: "Priya Patil",
     sector: "Food Processing",
     district: "Nashik",
@@ -683,8 +683,8 @@ export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   },
   {
     id: "APP-2026-0042",
-    companyName: "Acme Steel Industries Pvt Ltd",
-    applicantName: "Rahul Sharma",
+    companyName: "Bhima Steel Works Pvt Ltd",
+    applicantName: "Rahul Deshmukh",
     sector: "Steel",
     district: "Pune",
     riskCategory: "Green",
@@ -699,8 +699,8 @@ export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   },
   {
     id: "APP-2026-0051",
-    companyName: "Mehta Pharma Solutions",
-    applicantName: "Vikram Mehta",
+    companyName: "Godavari Pharmaceuticals & Chemicals",
+    applicantName: "Vikram Kadam",
     sector: "Pharma",
     district: "Thane",
     riskCategory: "Red",
@@ -715,7 +715,7 @@ export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   },
   {
     id: "APP-2026-0060",
-    companyName: "Wagh Textiles & Dyeing Works",
+    companyName: "Deccan Textiles & Dyeing Works",
     applicantName: "Suresh Wagh",
     sector: "Textiles",
     district: "Solapur",
@@ -731,7 +731,7 @@ export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   },
   {
     id: "APP-2026-0063",
-    companyName: "Joshi Auto Components Pvt Ltd",
+    companyName: "Waluj Auto Components Pvt Ltd",
     applicantName: "Neha Joshi",
     sector: "Automobile",
     district: "Chhatrapati Sambhajinagar",
@@ -747,7 +747,7 @@ export const DELAYED_APPLICATIONS: DelayedApplication[] = [
   },
   {
     id: "APP-2026-0075",
-    companyName: "Chavan Chemicals Pvt Ltd",
+    companyName: "Raigad Petrochemicals Pvt Ltd",
     applicantName: "Deepak Chavan",
     sector: "Chemicals",
     district: "Raigad",
@@ -768,7 +768,7 @@ export const RECENT_ACTIVITY: RecentActivityItem[] = [
     id: "act-1",
     type: "APPROVAL",
     title: "Factory Plan Approved",
-    description: "Shri Amit Deshmukh (MIDC) approved building plan for Rao Electronics Assembly",
+    description: "Shri Amit Deshmukh (MIDC) approved building plan for Vidarbha Electronics Assembly Pvt Ltd",
     department: "MIDC",
     timestamp: "2026-09-22T10:00:00+05:30",
     applicationId: "APP-2026-0082",
@@ -786,7 +786,7 @@ export const RECENT_ACTIVITY: RecentActivityItem[] = [
     id: "act-3",
     type: "DELAY_ALERT",
     title: "SLA Breach — Fire NOC",
-    description: "GreenLeaf Food Processing LLP has been waiting 32 days for Fire NOC (SLA: 14 days). Officer Rajesh Patil reported on leave.",
+    description: "Sahyadri Agro Processing LLP has been waiting 32 days for Fire NOC (SLA: 14 days). Officer Rajesh Patil reported on leave.",
     department: "Fire Services Department",
     timestamp: "2026-09-26T08:00:00+05:30",
     applicationId: "APP-2026-0038",
@@ -795,7 +795,7 @@ export const RECENT_ACTIVITY: RecentActivityItem[] = [
     id: "act-4",
     type: "SUBMISSION",
     title: "New Application Received",
-    description: "Mane Paper Mills (Chandrapur) submitted application for Factory Building Plan + MPCB Consent",
+    description: "Ballarpur Paper & Packaging (Chandrapur) submitted application for Factory Building Plan + MPCB Consent",
     department: "MIDC",
     timestamp: "2026-09-18T08:00:00+05:30",
     applicationId: "APP-2026-0080",
@@ -831,7 +831,7 @@ export const RECENT_ACTIVITY: RecentActivityItem[] = [
     id: "act-8",
     type: "APPROVAL",
     title: "Fire NOC Cleared",
-    description: "Shri Rajesh Patil (Fire Services) approved Fire NOC for Mehta Pharma Solutions",
+    description: "Shri Rajesh Patil (Fire Services) approved Fire NOC for Godavari Pharmaceuticals & Chemicals",
     department: "Fire Services Department",
     timestamp: "2026-09-10T10:00:00+05:30",
     applicationId: "APP-2026-0051",
