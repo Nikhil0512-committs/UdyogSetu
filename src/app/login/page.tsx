@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import { Globe, ChevronDown, User, Users, Shield, Mail, Lock, Eye, ArrowRight, ShieldCheck, FileText, Zap, BarChart3, Landmark } from "lucide-react";
+import PillLanguageToggle from "@/components/pill-language-toggle";
 
 const DEPARTMENTS = [
   { value: "MIDC", label: "MIDC (Building Plan)", id: "OFF-MIDC-001" },
@@ -65,7 +66,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex font-sans">
       {/* Left Column */}
-      <div className="hidden lg:flex lg:w-[55%] relative bg-gradient-to-br from-[#E2E8F0] via-[#CBD5E1] to-[#94A3B8] overflow-hidden flex-col justify-between p-12 lg:p-16 xl:p-20">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#E2E8F0] via-[#CBD5E1] to-[#94A3B8] overflow-hidden flex-col justify-between p-12 lg:p-16 xl:p-20">
         {/* Abstract shapes/map simulation in background */}
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#64748B]/90 via-[#94A3B8]/50 to-[#E2E8F0]/30"></div>
@@ -127,12 +128,10 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column */}
-      <div className="w-full lg:w-[45%] flex flex-col relative bg-[#F8FAFC]">
+      <div className="w-full lg:w-1/2 flex flex-col relative bg-[#F8FAFC]">
         {/* Language Selector */}
-        <div className="absolute top-6 right-8 flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer hover:text-slate-900 bg-transparent px-3 py-1.5 rounded-full z-10">
-          <Globe className="w-4 h-4" />
-          <span>English</span>
-          <ChevronDown className="w-4 h-4" />
+        <div className="absolute top-6 right-8 z-10">
+          <PillLanguageToggle variant="light" />
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 mt-12 lg:mt-0">
