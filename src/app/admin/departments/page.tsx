@@ -48,7 +48,7 @@ export default function AdminDepartmentsPage() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Department Performance</h1>
         <p className="text-slate-500 mt-1">
-          SLA compliance, processing speed, and bottleneck analysis for all {departments.length}{" "}
+          SLA compliance, processing speed, and bottleneck analysis for all <span>{departments.length}</span>{" "}
           departments.
         </p>
       </div>
@@ -61,7 +61,7 @@ export default function AdminDepartmentsPage() {
               <Clock className="w-6 h-6 text-amber-700" />
             </div>
             <div>
-              <p className="text-3xl font-bold text-slate-900">{totalPending}</p>
+              <p className="text-3xl font-bold text-slate-900"><span>{totalPending}</span></p>
               <p className="text-sm text-slate-500">Total Pending Reviews</p>
             </div>
           </CardContent>
@@ -72,7 +72,7 @@ export default function AdminDepartmentsPage() {
               <AlertTriangle className="w-6 h-6 text-red-700" />
             </div>
             <div>
-              <p className="text-3xl font-bold text-red-700">{totalOverdue}</p>
+              <p className="text-3xl font-bold text-red-700"><span>{totalOverdue}</span></p>
               <p className="text-sm text-slate-500">Total SLA Breaches</p>
             </div>
           </CardContent>
@@ -83,7 +83,7 @@ export default function AdminDepartmentsPage() {
               <CheckCircle2 className="w-6 h-6 text-emerald-700" />
             </div>
             <div>
-              <p className="text-3xl font-bold text-emerald-900">{avgSLA}%</p>
+              <p className="text-3xl font-bold text-emerald-900"><span>{avgSLA}</span>%</p>
               <p className="text-sm text-slate-500">Avg SLA Compliance</p>
             </div>
           </CardContent>
@@ -141,7 +141,7 @@ export default function AdminDepartmentsPage() {
                     <CardDescription className="text-xs mt-0.5">{dept.name}</CardDescription>
                   </div>
                   <Badge className={`${complianceColor} border-none font-bold text-sm`}>
-                    {dept.slaCompliancePercent}%
+                    <span>{dept.slaCompliancePercent}</span>%
                   </Badge>
                 </div>
               </CardHeader>
@@ -151,28 +151,28 @@ export default function AdminDepartmentsPage() {
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-600" />
                     <div>
-                      <p className="text-lg font-bold text-slate-900">{dept.pending}</p>
+                      <p className="text-lg font-bold text-slate-900"><span>{dept.pending}</span></p>
                       <p className="text-xs text-slate-500">Pending</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     <div>
-                      <p className="text-lg font-bold text-emerald-800">{dept.approved}</p>
+                      <p className="text-lg font-bold text-emerald-800"><span>{dept.approved}</span></p>
                       <p className="text-xs text-slate-500">Approved</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-red-600" />
                     <div>
-                      <p className="text-lg font-bold text-red-700">{dept.rejected}</p>
+                      <p className="text-lg font-bold text-red-700"><span>{dept.rejected}</span></p>
                       <p className="text-xs text-slate-500">Rejected</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <HelpCircle className="w-4 h-4 text-purple-600" />
                     <div>
-                      <p className="text-lg font-bold text-purple-700">{dept.queried}</p>
+                      <p className="text-lg font-bold text-purple-700"><span>{dept.queried}</span></p>
                       <p className="text-xs text-slate-500">Queried</p>
                     </div>
                   </div>
@@ -183,14 +183,14 @@ export default function AdminDepartmentsPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500">Avg Processing Time</span>
                     <span className={`text-sm font-bold ${dept.avgProcessingDays > dept.slaDays ? "text-red-700" : "text-slate-800"}`}>
-                      {dept.avgProcessingDays}d
-                      <span className="text-xs font-normal text-slate-400"> / {dept.slaDays}d SLA</span>
+                      <span>{dept.avgProcessingDays}</span>d
+                      <span className="text-xs font-normal text-slate-400"> / <span>{dept.slaDays}</span>d SLA</span>
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500">Active Officers</span>
                     <span className="text-sm font-bold text-slate-800 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-slate-400" /> {dept.activeOfficers}
+                      <Users className="w-3.5 h-3.5 text-slate-400" /> <span>{dept.activeOfficers}</span>
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -205,7 +205,7 @@ export default function AdminDepartmentsPage() {
                       }`}
                     >
                       {dept.bottleneckCount >= 5 && <AlertTriangle className="w-3.5 h-3.5" />}
-                      {dept.bottleneckCount}
+                      <span>{dept.bottleneckCount}</span>
                     </span>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ export default function AdminDepartmentsPage() {
                 <div className="pt-2">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs text-slate-500">SLA Compliance</span>
-                    <span className="text-xs font-bold text-slate-700">{dept.slaCompliancePercent}%</span>
+                    <span className="text-xs font-bold text-slate-700"><span>{dept.slaCompliancePercent}</span>%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                     <div

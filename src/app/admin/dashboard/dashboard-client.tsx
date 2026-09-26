@@ -108,7 +108,7 @@ export default function AdminDashboardClient({
               <div>
                 <p className="text-sm font-semibold text-slate-500 mb-1 tracking-wide uppercase">Total Applications</p>
                 <h3 className="text-4xl font-bold text-slate-900">
-                  {kpis.totalApplications.toLocaleString()}
+                  <span>{kpis.totalApplications.toLocaleString()}</span>
                 </h3>
               </div>
               <div className="p-2.5 bg-blue-100 rounded-xl">
@@ -128,7 +128,7 @@ export default function AdminDashboardClient({
               <div>
                 <p className="text-sm font-semibold text-slate-500 mb-1 tracking-wide uppercase">Avg Clearance Time</p>
                 <h3 className="text-4xl font-bold text-slate-900">
-                  {kpis.avgClearanceTimeDays}
+                  <span>{kpis.avgClearanceTimeDays}</span>
                   <span className="text-xl text-slate-500 font-medium ml-1">Days</span>
                 </h3>
               </div>
@@ -148,7 +148,7 @@ export default function AdminDashboardClient({
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-slate-500 mb-1 tracking-wide uppercase">Delayed / Overdue</p>
-                <h3 className="text-4xl font-bold text-red-700">{kpis.totalDelayed}</h3>
+                <h3 className="text-4xl font-bold text-red-700"><span>{kpis.totalDelayed}</span></h3>
               </div>
               <div className="p-2.5 bg-red-100 rounded-xl">
                 <AlertTriangle className="w-5 h-5 text-red-700" />
@@ -172,7 +172,7 @@ export default function AdminDashboardClient({
               <div>
                 <p className="text-sm font-semibold text-slate-500 mb-1 tracking-wide uppercase">SLA Compliance</p>
                 <h3 className="text-4xl font-bold text-slate-900">
-                  {kpis.slaCompliancePercent}
+                  <span>{kpis.slaCompliancePercent}</span>
                   <span className="text-xl text-slate-500 font-medium ml-1">%</span>
                 </h3>
               </div>
@@ -181,8 +181,8 @@ export default function AdminDashboardClient({
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm text-slate-500 font-medium bg-slate-100 w-max px-2 py-0.5 rounded-md">
-              <Building2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" /> {kpis.totalDepartments} Depts &middot;{" "}
-              {kpis.totalOfficers} Officers
+              <Building2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" /> <span>{kpis.totalDepartments}</span> <span>Depts &middot;</span>{" "}
+              <span>{kpis.totalOfficers}</span> <span>Officers</span>
             </div>
           </CardContent>
         </Card>

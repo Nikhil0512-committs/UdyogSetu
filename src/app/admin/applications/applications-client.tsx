@@ -101,7 +101,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
               <FileStack className="w-5 h-5 text-blue-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{initialData.length}</p>
+              <p className="text-2xl font-bold text-slate-900"><span>{initialData.length}</span></p>
               <p className="text-xs text-slate-500">Total Applications</p>
             </div>
           </CardContent>
@@ -112,7 +112,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
               <Clock className="w-5 h-5 text-amber-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-amber-900">{totalInReview}</p>
+              <p className="text-2xl font-bold text-amber-900"><span>{totalInReview}</span></p>
               <p className="text-xs text-slate-500">In Review</p>
             </div>
           </CardContent>
@@ -123,7 +123,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
               <AlertTriangle className="w-5 h-5 text-red-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-700">{totalDelayed}</p>
+              <p className="text-2xl font-bold text-red-700"><span>{totalDelayed}</span></p>
               <p className="text-xs text-slate-500">Delayed</p>
             </div>
           </CardContent>
@@ -134,7 +134,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
               <CheckCircle2 className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-emerald-900">{totalApproved}</p>
+              <p className="text-2xl font-bold text-emerald-900"><span>{totalApproved}</span></p>
               <p className="text-xs text-slate-500">Approved</p>
             </div>
           </CardContent>
@@ -198,7 +198,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
       <Card className="border-none shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-slate-900">
-            {filtered.length} Application{filtered.length !== 1 ? "s" : ""} Found
+            <span>{filtered.length}</span> <span>Application{filtered.length !== 1 ? "s" : ""} Found</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -236,7 +236,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
                   </TableCell>
                   <TableCell>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 shadow-sm border border-black/5 ${statusColors[app.status] || "bg-slate-100 text-slate-800"}`}>
-                      {statusIcons[app.status]} {app.status.replace("_", " ")}
+                      {statusIcons[app.status]} <span>{app.status.replace("_", " ")}</span>
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-slate-700 font-medium max-w-[140px] truncate" title={app.currentDepartment}>
@@ -245,7 +245,7 @@ export default function AdminApplicationsClient({ initialData }: { initialData: 
                   <TableCell className="text-sm text-slate-600 max-w-[120px] truncate" title={app.assignedOfficer}>{app.assignedOfficer}</TableCell>
                   <TableCell>
                     <span className={`text-sm font-bold ${app.daysInQueue > app.slaDays ? "text-red-700 bg-red-100 px-2 py-0.5 rounded" : "text-slate-700"}`}>
-                      {app.daysInQueue}
+                      <span>{app.daysInQueue}</span>
                       <span className="text-xs font-normal opacity-70">/{app.slaDays}d</span>
                     </span>
                   </TableCell>

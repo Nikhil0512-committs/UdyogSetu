@@ -45,7 +45,7 @@ export default function PillLanguageToggle({
 
   return (
     <div
-      className="inline-flex items-center rounded-[20px] border p-0.5 text-sm font-medium"
+      className="notranslate inline-flex items-center rounded-[20px] border p-0.5 text-sm font-medium"
       style={{ borderColor }}
     >
       <button
