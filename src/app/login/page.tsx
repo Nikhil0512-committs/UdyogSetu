@@ -66,59 +66,59 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex font-sans">
       {/* Left Column */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#E2E8F0] via-[#CBD5E1] to-[#94A3B8] overflow-hidden flex-col justify-between p-12 lg:p-16 xl:p-20">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#E2E8F0] via-[#CBD5E1] to-[#94A3B8] overflow-hidden flex-col justify-between p-8 lg:p-10 xl:p-16">
         {/* Abstract shapes/map simulation in background */}
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#64748B]/90 via-[#94A3B8]/50 to-[#E2E8F0]/30"></div>
         
         <div className="relative z-10 flex flex-col h-full justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-20">
-              <Landmark className="w-12 h-12 text-[#1C2C4A]" />
+            <div className="flex items-center gap-3 mb-10 xl:mb-16">
+              <Landmark className="w-10 h-10 xl:w-12 xl:h-12 text-[#1C2C4A]" />
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-[#1C2C4A]">महाराष्ट्र शासन</span>
-                <span className="text-xs font-semibold text-[#1C2C4A] tracking-widest mt-0.5">सत्यमेव जयते</span>
+                <span className="text-xl xl:text-2xl font-bold text-[#1C2C4A]">महाराष्ट्र शासन</span>
+                <span className="text-[10px] xl:text-xs font-semibold text-[#1C2C4A] tracking-widest mt-0.5">सत्यमेव जयते</span>
               </div>
             </div>
 
-            <h1 className="text-[3.5rem] xl:text-[4rem] leading-[1.1] font-bold text-[#1C2C4A] mb-6">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl leading-[1.1] font-bold text-[#1C2C4A] mb-4 xl:mb-6">
               One gateway for <br />
               <span className="text-[#B44218]">Maharashtra's</span> <br />
               industrial approvals.
             </h1>
             
-            <p className="text-[#334155] text-xl xl:text-2xl font-medium mb-16 max-w-xl leading-snug">
+            <p className="text-[#334155] text-lg lg:text-xl font-medium mb-10 xl:mb-16 max-w-xl leading-snug">
               Simpler approvals. Faster clearances. <br />
               A stronger Maharashtra for a brighter tomorrow.
             </p>
 
-            <div className="flex flex-col gap-6 sm:flex-row sm:gap-8">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
-                  <FileText className="w-6 h-6 xl:w-7 xl:h-7" />
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6 xl:gap-8">
+              <div className="flex items-center gap-3 xl:gap-4">
+                <div className="flex items-center justify-center w-10 h-10 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
+                  <FileText className="w-5 h-5 xl:w-7 xl:h-7" />
                 </div>
-                <span className="font-semibold text-[#1C2C4A] text-sm xl:text-base leading-tight max-w-[100px]">Transparent Processes</span>
+                <span className="font-semibold text-[#1C2C4A] text-[13px] xl:text-base leading-tight max-w-[100px]">Transparent Processes</span>
               </div>
-              <div className="hidden sm:block w-px h-14 bg-slate-400/50"></div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
-                  <Zap className="w-6 h-6 xl:w-7 xl:h-7" />
+              <div className="hidden sm:block w-px h-10 xl:h-14 bg-slate-400/50"></div>
+              <div className="flex items-center gap-3 xl:gap-4">
+                <div className="flex items-center justify-center w-10 h-10 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
+                  <Zap className="w-5 h-5 xl:w-7 xl:h-7" />
                 </div>
-                <span className="font-semibold text-[#1C2C4A] text-sm xl:text-base leading-tight max-w-[80px]">Faster Approvals</span>
+                <span className="font-semibold text-[#1C2C4A] text-[13px] xl:text-base leading-tight max-w-[80px]">Faster Approvals</span>
               </div>
-              <div className="hidden sm:block w-px h-14 bg-slate-400/50"></div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
-                  <BarChart3 className="w-6 h-6 xl:w-7 xl:h-7" />
+              <div className="hidden sm:block w-px h-10 xl:h-14 bg-slate-400/50"></div>
+              <div className="flex items-center gap-3 xl:gap-4">
+                <div className="flex items-center justify-center w-10 h-10 xl:w-14 xl:h-14 rounded-full bg-[#B44218]/10 text-[#B44218]">
+                  <BarChart3 className="w-5 h-5 xl:w-7 xl:h-7" />
                 </div>
-                <span className="font-semibold text-[#1C2C4A] text-sm xl:text-base leading-tight max-w-[100px]">Empowering Businesses</span>
+                <span className="font-semibold text-[#1C2C4A] text-[13px] xl:text-base leading-tight max-w-[100px]">Empowering Businesses</span>
               </div>
             </div>
           </div>
           
-          <div className="mt-auto">
-            <div className="w-12 h-1.5 bg-[#B44218] mb-6"></div>
-            <p className="text-white text-3xl xl:text-4xl font-semibold leading-[1.2] drop-shadow-md">
+          <div className="mt-auto pt-6">
+            <div className="w-10 xl:w-12 h-1.5 bg-[#B44218] mb-4 xl:mb-6"></div>
+            <p className="text-white text-2xl xl:text-4xl font-semibold leading-[1.2] drop-shadow-md">
               Building <br />
               A Prosperous <br />
               Maharashtra
@@ -134,49 +134,49 @@ export default function LoginPage() {
           <PillLanguageToggle variant="light" />
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 mt-12 lg:mt-0">
-          <div className="w-full max-w-[480px] bg-white rounded-[1.25rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 p-8 sm:p-10 relative">
-            <div className="text-center mb-10">
-              <Image src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" width={220} height={70} className="h-14 w-auto object-contain mx-auto mb-3" priority />
-              <p className="text-slate-500 text-[15px] font-medium">Maharashtra Industrial Approvals Platform</p>
-              <div className="w-10 h-[2px] bg-[#B44218] mx-auto mt-6"></div>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-8 mt-12 lg:mt-0">
+          <div className="w-full max-w-[440px] xl:max-w-[480px] bg-white rounded-[1.25rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 p-6 sm:p-8 relative">
+            <div className="text-center mb-8">
+              <Image src="/UdyogSetu_Logo.png" alt="UdyogSetu Logo" width={220} height={70} className="h-10 xl:h-12 w-auto object-contain mx-auto mb-2" priority />
+              <p className="text-slate-500 text-[13px] xl:text-[14px] font-medium">Maharashtra Industrial Approvals Platform</p>
+              <div className="w-8 h-[2px] bg-[#B44218] mx-auto mt-4"></div>
             </div>
             
-            <div className="mb-8">
-              <h1 className="text-[1.75rem] font-bold text-[#1C2C4A] mb-1">Sign In</h1>
-              <p className="text-slate-500 text-[15px]">Access your account to continue</p>
+            <div className="mb-6">
+              <h1 className="text-2xl xl:text-[1.75rem] font-bold text-[#1C2C4A] mb-1">Sign In</h1>
+              <p className="text-slate-500 text-[14px]">Access your account to continue</p>
             </div>
             
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="flex bg-[#F1F5F9] rounded-lg p-1 border border-slate-200">
                 <button
                   type="button"
                   onClick={() => { setRole("APPLICANT"); setDepartment(""); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-md transition-all duration-200 ${role === "APPLICANT" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-md transition-all duration-200 ${role === "APPLICANT" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   <User className="w-4 h-4" /> Applicant
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole("OFFICER")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-md transition-all duration-200 ${role === "OFFICER" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-md transition-all duration-200 ${role === "OFFICER" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   <Users className="w-4 h-4" /> Officer
                 </button>
                 <button
                   type="button"
                   onClick={() => { setRole("ADMIN"); setDepartment(""); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-md transition-all duration-200 ${role === "ADMIN" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-md transition-all duration-200 ${role === "ADMIN" ? "bg-[#B44218] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
                 >
-                  <Shield className="w-4 h-4" /> Administrator
+                  <Shield className="w-4 h-4" /> Admin
                 </button>
               </div>
               
               {role === "OFFICER" && (
                 <div className="space-y-2">
-                  <Label className="text-slate-700 font-semibold text-[15px]">Department</Label>
+                  <Label className="text-slate-700 font-semibold text-[14px]">Department</Label>
                   <Select onValueChange={(v) => v && setDepartment(v)} value={department}>
-                    <SelectTrigger className="h-12 border-slate-200">
+                    <SelectTrigger className="h-11 border-slate-200">
                       <SelectValue placeholder="Choose department..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -195,9 +195,9 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <div className="space-y-5">
-                <div className="space-y-2.5">
-                  <Label className="text-slate-700 font-semibold text-[15px]">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold text-[14px]">
                     {role === "APPLICANT" ? "Email Address" : role === "ADMIN" ? "Admin ID" : "Employee ID"}
                   </Label>
                   <div className="relative">
@@ -210,15 +210,15 @@ export default function LoginPage() {
                       placeholder={role === "APPLICANT" ? "admin@company.com" : role === "ADMIN" ? "ADMIN-001" : DEPARTMENTS.find(d => d.value === department)?.id || "OFF-XXX-001"}
                       required
                       defaultValue={role === "APPLICANT" ? "admin@company.com" : role === "ADMIN" ? "ADMIN-001" : ""}
-                      className="pl-[42px] h-12 border-slate-200 focus-visible:ring-[#B44218] text-slate-900 placeholder:text-slate-400 text-[15px]"
+                      className="pl-[42px] h-11 border-slate-200 focus-visible:ring-[#B44218] text-slate-900 placeholder:text-slate-400 text-[14px]"
                     />
                   </div>
                 </div>
                 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 font-semibold text-[15px]">Password</Label>
-                    <Link href="#" className="text-[13px] font-semibold text-[#B44218] hover:underline">Need help?</Link>
+                    <Label className="text-slate-700 font-semibold text-[14px]">Password</Label>
+                    <Link href="#" className="text-[12px] font-semibold text-[#B44218] hover:underline">Need help?</Link>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -229,7 +229,7 @@ export default function LoginPage() {
                       placeholder="••••••••" 
                       required 
                       defaultValue="password123" 
-                      className="pl-[42px] pr-10 h-12 border-slate-200 focus-visible:ring-[#B44218] text-slate-900 placeholder:text-slate-400 text-[15px] tracking-widest"
+                      className="pl-[42px] pr-10 h-11 border-slate-200 focus-visible:ring-[#B44218] text-slate-900 placeholder:text-slate-400 text-[14px] tracking-widest"
                     />
                     <button 
                       type="button"
@@ -249,15 +249,15 @@ export default function LoginPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full h-[52px] text-base font-semibold bg-[#B44218] hover:bg-[#963713] text-white shadow-sm flex items-center justify-center gap-2 transition-colors mt-3"
+                  className="w-full h-11 xl:h-12 text-[15px] font-semibold bg-[#B44218] hover:bg-[#963713] text-white shadow-sm flex items-center justify-center gap-2 transition-colors mt-2"
                   disabled={role === "OFFICER" && !department}
                 >
                   {role === "APPLICANT" ? "Sign In as Applicant" : role === "ADMIN" ? "Sign In as Administrator" : `Sign In to ${department || "Department"}`}
                   <ArrowRight className="w-[18px] h-[18px]" />
                 </Button>
                 
-                <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-center gap-2 text-[13px] font-medium text-slate-500">
-                  <ShieldCheck className="w-[18px] h-[18px] text-slate-400" />
+                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-[12px] font-medium text-slate-500">
+                  <ShieldCheck className="w-[16px] h-[16px] text-slate-400" />
                   Secure access • Government of Maharashtra
                 </div>
               </div>
@@ -265,14 +265,14 @@ export default function LoginPage() {
           </div>
           
           {role === "APPLICANT" && (
-            <p className="text-center text-[15px] text-slate-500 mt-8">
+            <p className="text-center text-[14px] text-slate-500 mt-6">
               Don't have an account? <Link href="/signup" className="text-[#B44218] font-bold hover:underline">Register your business</Link>
             </p>
           )}
         </div>
         
         {/* Footer */}
-        <div className="w-full px-8 py-6 flex flex-col md:flex-row justify-between items-center text-[13px] text-slate-500 gap-4">
+        <div className="w-full px-8 py-4 flex flex-col md:flex-row justify-between items-center text-[12px] text-slate-500 gap-3">
           <div className="flex gap-4 font-medium">
             <Link href="#" className="hover:text-slate-800">Terms of Use</Link>
             <span className="text-slate-300">|</span>
