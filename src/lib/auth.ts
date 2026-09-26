@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export type Role = "APPLICANT" | "OFFICER";
+export type Role = "APPLICANT" | "OFFICER" | "ADMIN";
 
 export interface MockSession {
   userId: string;
@@ -33,7 +33,11 @@ export async function requireAuth(role?: Role) {
   }
   
   if (role && session.role !== role) {
-    redirect(session.role === "APPLICANT" ? "/dashboard" : "/officer/dashboard");
+    redirect(
+      session.role === "APPLICANT" ? "/dashboard" 
+      : session.role === "ADMIN" ? "/admin/dashboard" 
+      : "/officer/dashboard"
+    );
   }
   
   return session;
